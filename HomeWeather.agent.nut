@@ -358,6 +358,7 @@ api.post("/dimmer", function(context) {
         state = data.enabled;
         settings.offatnight = state;
         device.send("homeweather.set.offatnight", state);
+        if (debug) server.log(state ? "Dimmer enabled" : "Dimmer disabled");
     }
 
     if (start == null && end == null && state == null) {
