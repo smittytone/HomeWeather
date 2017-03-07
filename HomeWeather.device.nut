@@ -1,3 +1,6 @@
+// Home Weather - wall-mount weather Station
+// Copyright Tony Smith, 2015-2017
+
 #require "HT16K33Segment.class.nut:1.2.0"
 #require "ht16k33matrix.class.nut:1.2.0"
 #require "utilities.nut:1.0.0"

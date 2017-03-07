@@ -1,131 +1,178 @@
+// Home Weather - wall-mount weather Station
+// Copyright Tony Smith, 2015-2017
+
 #require "DarkSky.class.nut:1.0.1"
 #require "BuildAPIAgent.class.nut:1.1.1"
 #require "Rocky.class.nut:2.0.0"
 
 // CONSTANTS
 const forecastRefreshTime = 900;
-
-const htmlString = @"
-    <!DOCTYPE html>
-    <html>
-        <head>
-            <title>Home Weather Station Control</title>
-            <link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css'>
-            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-            <style>
-                .center { margin-left: auto; margin-right: auto; margin-bottom: auto; margin-top: auto; }
-            </style>
-        </head>
-        <body>
-            <div class='container' style='padding: 20px'>
-            <div class='container' style='border: 2px solid gray'>
-                <h2 class='text-center'>Home Weather Station Control</h2>
-                <div class='current-status'>
-                    <h4 class='temp-status'>Temperature: <span></span>&deg;C&nbsp;</h4><h4 class='outlook-status'>Outlook: <span></span></h4>
-                </div>
-                <br>
-                <div class='controls'>
-                    <form id='name-form'>
-                        <div class='update-fields'>
-                            <label>Night Dimmer Start Time:</label>&nbsp;<input id='dimmerstart' style='width:40px'></input><br>
-                            <label>Night Dimmer End Time:</label>&nbsp;&nbsp;<input id='dimmerend' style='width:40px'></input><br>&nbsp;
-                        </div>
-                        <div class='update-button'>
-                            <button type='submit' id='dimmer-button' style='height:24px;width:200px'>Submit Dimmer Time</button><br>&nbsp;
-                        </div>
-                        <div class='enable-button'>
-                            <button type='submit' id='dimmer-action'style='height:24px;width:200px'>Enable Night Dimmer</button>
-                        </div>
-                    </form>
-                </div> <!-- controls -->
-                &nbsp;<br>&nbsp;
-            </div>  <!-- container -->
+const htmlString = @" <!DOCTYPE html>
+<html>
+  <head>
+    <title>Home Weather Station Control</title>
+    <link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <style>
+      .center { margin-left: auto; margin-right: auto; margin-bottom: auto; margin-top: auto; }
+    </style>
+  </head>
+  <body>
+    <div class='container' style='padding: 20px'>
+      <div class='container' style='border: 2px solid gray'>
+        <h2 class='text-center'>Home Weather Station Control <span></span><br>&nbsp;</h2>
+        <div class='current-status'>
+          <h4 class='temp-status' align='center'>Temperature: <span></span>&deg;C&nbsp;</h4>
+          <h4 class='outlook-status' align='center'>Outlook: <span></span></h4>
+          <p align='center'>Forecast updates automatically every two minutes</p>
+          <p class='error-message' align='center'><i><span></span></i></p>
+        </div>
+        <br>
+        <hr>
+        <div class='controls' align='center'>
+          <form id='name-form'>
+            <div class='update-fields'>
+              <table width='200'>
+                <tr>
+                  <td align='right' width='145'>Night Mode Start Time</td>
+                  <td  align='right' width='46'><input type='text' id='dimmerstart' min='0' max='22' style='width:40px'></input></td>
+                </tr>
+                <tr>
+                  <td align='right'>Night Mode End Time</td>
+                  <td align='right'><input type='text' id='dimmerend' min='1' max='23' style='width:40px'></input></td>
+                </tr>
+              </table>
+              <p>&nbsp;</p>
             </div>
-            <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
-            <script>
-                var state = true;
-                var agenturl = '%s';
-                getState(updateReadout);
-                $('.update-button button').on('click', setStateTime);
-                $('.enable-button button').on('click', setStateEnable);
+            <div class='update-button'>
+              <button type='submit' id='dimmer-button' style='height:32px;width:200px'>Set Night Mode Times</button><br>&nbsp;
+            </div>
+            <div class='enable-button'>
+              <button type='submit' id='dimmer-action'style='height:32px;width:200px'>Enable Night Mode</button>
+            </div>
+            <hr>
+            <div class='debug-checkbox'>
+              <small><input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode</small>
+            </div>
+          </form>
+        </div>
+        <hr>
+        <p class='text-center'>&nbsp;<br>&nbsp;<small>Home Weather Station Control copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;</p>
+      </div>
+    </div>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
+    <script>
+      var state = true;
+      var agenturl = '%s';
 
-                function setStateTime(e){
-                    e.preventDefault();
-                    var start = document.getElementById('dimmerstart').value;
-                    var end = document.getElementById('dimmerend').value;
-                    setTime(start, end);
-                    $('#name-form').trigger('reset');
-                }
+      // Get initial readout data
+      getState(updateReadout);
 
-                function setStateEnable(e){
-                    e.preventDefault();
-                    state = !state;
-                    setState(state);
-                    $('#name-form').trigger('reset');
-                }
+      // Set object click actions
+      $('.update-button button').on('click', setStateTime);
+      $('.enable-button button').on('click', setStateEnable);
+      $('input:checkbox[name=debug]').click(setdebug);
 
-                function updateReadout(data) {
-                    var bs = 'Disable Night Dimmer';
-                    state = true;
-                    if (data.enabled == false) {
-                        bs = 'Enable Night Dimmer';
-                        state = false;
-                    }
+      function setStateTime(e){
+        // Set the night mode duration
+        e.preventDefault();
+        var start = document.getElementById('dimmerstart').value;
+        var end = document.getElementById('dimmerend').value;
+        setTime(start, end);
+        $('#name-form').trigger('reset');
+      }
 
-                    $('#dimmer-action').text(bs);
-                    document.getElementById('dimmerstart').value = data.dimstart;
-                    document.getElementById('dimmerend').value = data.dimend;
+      function setStateEnable(e){
+        // Enable/disable night mode
+        e.preventDefault();
+        state = !state;
+        setState(state);
+        $('#name-form').trigger('reset');
+      }
 
-                    $('.temp-status span').text(data.temp);
-                    $('.outlook-status span').text(data.outlook);
+      function updateReadout(data) {
+        // Update the UI with data from the device
+        if (data.error) {
+          $('.error-message span').text(data.error);
+        } else {
+          // Set the weather forecast data
+          $('.temp-status span').text(data.temp);
+          $('.outlook-status span').text(data.outlook);
+        }
 
-                    setTimeout(function() {
-                        getState(updateReadout);
-                    }, 120000);
-                }
+        // Set the 'enable' button text
+        var bs = 'Disable Night Mode';
+        state = true;
+        if (data.enabled == false) {
+          bs = 'Enable Night Dimmer';
+          state = false;
+        }
 
-                function getState(callback) {
-                    $.ajax({
-                        url : agenturl + '/dimmer',
-                        type: 'GET',
-                        success : function(response) {
-                            response = JSON.parse(response);
-                            if (callback && ('temp' in response)) {
-                                callback(response);
-                            }
-                        }
-                    });
-                }
+        $('#dimmer-action').text(bs);
 
-                function setTime(start, end) {
-                    $.ajax({
-                        url : agenturl + '/dimmer',
-                        type: 'POST',
-                        data: JSON.stringify({ 'dimstart' : start,
-                                               'dimend' : end }),
-                        success : function(response) {
-                            getState(updateReadout);
-                        }
-                    });
-                }
+        // Set the night mode times
+        document.getElementById('dimmerstart').value = data.dimstart;
+        document.getElementById('dimmerend').value = data.dimend;
 
-                function setState(aState) {
-                    $.ajax({
-                        url : agenturl + '/dimmer',
-                        type: 'POST',
-                        data: JSON.stringify({ 'enabled' : aState }),
-                        success : function(response) {
-                            console.log(response);
-                            getState(updateReadout);
-                        }
-                    });
-                }
+        $('.text-center span').text(data.vers);
+        $('.error-message span').text(' ');
+        document.getElementById('debug').checked = data.debug;
 
+        // Auto-reload data in 120 seconds
+        setTimeout(function() { getState(updateReadout); }, 120000);
+      }
 
-            </script>
-        </body>
-    </html>
-";
+      function getState(callback) {
+        // Get the data from the device
+        $.ajax({
+          url : agenturl + '/dimmer',
+          type: 'GET',
+          success : function(response) {
+            response = JSON.parse(response);
+            if (callback && ('temp' in response)) {
+              callback(response);
+            }
+          }
+        });
+      }
+
+      function setTime(start, end) {
+        // Set the night mode times
+        $.ajax({
+          url : agenturl + '/dimmer',
+          type: 'POST',
+          data: JSON.stringify({ 'dimstart' : start, 'dimend' : end }),
+          success : function(response) {
+            getState(updateReadout);
+          }
+        });
+      }
+
+      function setState(aState) {
+        // Enable/disable night mode
+        $.ajax({
+          url : agenturl + '/dimmer',
+          type: 'POST',
+          data: JSON.stringify({ 'enabled' : aState }),
+          success : function(response) {
+            console.log(response);
+            getState(updateReadout);
+          }
+        });
+      }
+
+      function setdebug() {
+        // Tell the device to enter or leave debug mode
+        $.ajax({
+          url : agenturl + '/debug',
+          type: 'POST',
+          data: JSON.stringify({ 'debug' : document.getElementById('debug').checked })
+        });
+      }
+
+    </script>
+  </body>
+</html>";
 
 // GLOBALS
 local request = null;
@@ -135,12 +182,12 @@ local agentRestartTimer = null;
 local build = null;
 local apiKey = null;
 local api = null;
-local homeData = null;
+local savedData = null;
 
 local myLongitude = -0.147118;
 local myLatitude = 51.592907;
 local deviceSyncFlag = false;
-local appVersion = "2.2";
+local appVersion = "2.2.";
 local appName = "HomeWeather";
 local debug = true;
 local firstRun = false;
@@ -158,7 +205,7 @@ function forecastCallback(err, data) {
     // Decode the JSON-format data from forecast.io (error thrown if invalid)
     if (debug) {
         if (err) server.error(err);
-        if (data) server.log("Weather forecast data received from forecast.io");
+        if (data) server.log("Weather forecast data received from DarkSky");
     }
 
     if (data) {
@@ -188,13 +235,15 @@ function forecastCallback(err, data) {
                     sendData.cast = "partly cloudy";
                 }
 
+                local initial = sendData.cast.slice(0, 1);
+                sendData.cast = initial.toupper() + sendData.cast.slice(1);
+
                 // Send the icon name to the device
                 sendData.icon <- item.icon;
                 sendData.temp <- item.apparentTemperature;
                 sendData.rain <- item.precipProbability;
                 device.send("homeweather.show.forecast", sendData);
-                homeData = sendData;
-
+                savedData = sendData;
                 if (debug) server.log("Forecast: " + sendData.cast + ". Temp: " + sendData.temp + "\'C. Chance of rain: " + (sendData.rain * 100) + "%");
             }
         }
@@ -217,7 +266,6 @@ function deviceReady(dummy) {
     getForecast();
 }
 
-
 // PROGRAM START
 
 // You will need to uncomment the following lines...
@@ -237,23 +285,32 @@ forecaster.setUnits("uk");
 device.on("homeweather.get.forecast", deviceReady);
 
 // Manage app settings
-if (firstRun != true) settings = server.load();
+// Clear app settings if required
+if (firstRun) server.save({});
+
+settings = server.load();
 if (settings.len() == 0) {
     // No settings saved so set the defaults
     settings.dimstart <- 21;
     settings.dimend <- 6;
     settings.offatnight <- true;
+    settings.debug <- false;
 
     // Save the settings immediately
     local result = server.save(settings);
-    if (result != 0 && debug) server.error("Settings could not be saved");
+    if (result != 0) server.error("Settings could not be saved");
 }
 
-// Register the API handler
-// http.onrequest(httpHandler);
+// Fix for added settings fields
+if ("debug" in settings) {
+    debug = settings.debug;
+} else {
+    settings.debug <- debug;
+}
+
+// Set up the API
 api = Rocky();
 
-// Set up the app's API
 api.get("/", function(context) {
     // Root request: just return standard HTML string
     context.send(200, format(htmlString, http.agenturl()));
@@ -265,13 +322,14 @@ api.get("/dimmer", function(context) {
     data.enabled <- settings.offatnight;
     data.dimstart <- settings.dimstart;
     data.dimend <- settings.dimend;
+    data.debug <- settings.debug;
+    data.vers <- appVersion.slice(0, 3);
 
-    if (homeData != null) {
-        data.temp <- homeData.temp;
-        data.outlook <- homeData.cast;
+    if (savedData != null) {
+        data.temp <- savedData.temp;
+        data.outlook <- savedData.cast;
     } else {
-        data.temp <- "??";
-        data.outlook <- "unknown";
+        data.error <- "Forecast not yet available - try again soon";
     }
 
     data = http.jsonencode(data);
@@ -296,7 +354,6 @@ api.post("/dimmer", function(context) {
 
     if ("dimstart" in data) start = data.dimstart.tointeger();
     if ("dimend" in data) end = data.dimend.tointeger();
-
     if ("enabled" in data) {
         state = data.enabled;
         settings.offatnight = state;
@@ -315,26 +372,71 @@ api.post("/dimmer", function(context) {
 
             if (end == start) {
                 device.send("homeweather.set.offatnight", false);
-                settings.offatnight = state;
-            } else {
-                device.send("homeweather.set.dim.start", start);
-                device.send("homeweather.set.dim.end", end);
+                settings.offatnight = false;
+                if (start < 23) {
+                    end = start + 1;
+                } else {
+                    start = 22;
+                    end = 23;
+                }
             }
+
+            device.send("homeweather.set.dim.start", start);
+            device.send("homeweather.set.dim.end", end);
 
             settings.dimstart = start;
             settings.dimend = end;
+            if (debug) server.log("Setting dimmer start to " + start + ", end to " + end);
         }
 
         context.send(202, "Night dimming setting(s) applied");
 
         local result = server.save(settings);
-        if (result != 0 && debug) server.error("Settings could not be saved");
+        if (result != 0) server.error("Settings could not be saved");
     }
 });
 
-// Comment out the following three lines if you are not using the Build API integration
-appName = build.getModelName(imp.configparams.deviceid);
-appVersion = build.getLatestBuildNumber(appName);
+api.post("/debug", function(context) {
+    try {
+        local data = http.jsondecode(context.req.rawbody);
+        if ("debug" in data) {
+            debug = data.debug;
+            if (debug) {
+                server.log("Debug enabled");
+            } else {
+                server.log("Debug disabled");
+            }
+
+            device.send("homeweather.set.debug", debug);
+            settings.debug = debug;
+            local result = server.save(settings);
+            if (result != 0) server.error("Could not save settings (code: " + r + ")");
+        }
+    } catch (err) {
+        server.error(err);
+        context.send(400, "Bad data posted");
+        return;
+    }
+
+    context.send(200, (debug ? "Debug on" : "Debug off"));
+});
+
+// Comment out the following 16 lines if you are not using the Build API integration
+build.getModelName(imp.configparams.deviceid, function(err, data) {
+    if (err) {
+        server.error(err);
+    } else {
+        appName = data;
+        build.getLatestBuildNumber(appName, function(err, data) {
+            if (err) {
+                server.error(err);
+            } else {
+                appVersion = appVersion + data;
+            }
+        }.bindenv(this));
+    }
+}.bindenv(this));
+
 if (debug) server.log("Starting \"" + appName + "\" build " + appVersion);
 
 // In five minutes' time, check if the device has not synced (as far as
