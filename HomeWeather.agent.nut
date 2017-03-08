@@ -411,7 +411,7 @@ api.post("/debug", function(context) {
             device.send("homeweather.set.debug", debug);
             settings.debug = debug;
             local result = server.save(settings);
-            if (result != 0) server.error("Could not save settings (code: " + r + ")");
+            if (result != 0) server.error("Could not save settings (code: " + result + ")");
         }
     } catch (err) {
         server.error(err);
