@@ -7,23 +7,30 @@
 
 // CONSTANTS
 const forecastRefreshTime = 900;
-const htmlString = @" <!DOCTYPE html>
+const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 <html>
   <head>
     <title>Home Weather Station Control</title>
     <link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css'>
+    <link href='//fonts.googleapis.com/css?family=Abel' rel='stylesheet'>
+    <link href='//fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <style>
       .center { margin-left: auto; margin-right: auto; margin-bottom: auto; margin-top: auto; }
+      body {background-color: dimGrey;}
+      p {color: white; font-family: Abel}
+      h2 {color: white; font-family: Abel; font-weight:bold}
+      h4 {color: white; font-family: Abel}
+      td {color: white; font-family: Abel}
     </style>
   </head>
   <body>
     <div class='container' style='padding: 20px'>
-      <div class='container' style='border: 2px solid gray'>
+      <div class='container' style='border: 2px solid white'>
         <h2 class='text-center'>Home Weather Station Control <span></span><br>&nbsp;</h2>
         <div class='current-status'>
-          <h4 class='temp-status' align='center'>Temperature: <span></span>&deg;C&nbsp;</h4>
-          <h4 class='outlook-status' align='center'>Outlook: <span></span></h4>
+          <h4 class='temp-status' align='center'>Current Temperature: <span></span>&deg;C&nbsp;</h4>
+          <h4 class='outlook-status' align='center'>Weather Outlook: <span></span></h4>
           <p align='center'>Forecast updates automatically every two minutes</p>
           <p class='error-message' align='center'><i><span></span></i></p>
         </div>
@@ -35,29 +42,29 @@ const htmlString = @" <!DOCTYPE html>
               <table width='200'>
                 <tr>
                   <td align='right' width='145'>Night Mode Start Time</td>
-                  <td  align='right' width='46'><input type='text' id='dimmerstart' min='0' max='22' style='width:40px'></input></td>
+                  <td  align='right' width='46'><input type='text' id='dimmerstart' min='0' max='22' style='width:40px;color:CornflowerBlue'></input></td>
                 </tr>
                 <tr>
                   <td align='right'>Night Mode End Time</td>
-                  <td align='right'><input type='text' id='dimmerend' min='1' max='23' style='width:40px'></input></td>
+                  <td align='right'><input type='text' id='dimmerend' min='1' max='23' style='width:40px;color:CornflowerBlue'></input></td>
                 </tr>
               </table>
               <p>&nbsp;</p>
             </div>
-            <div class='update-button'>
+            <div class='update-button' style='color:dimGrey;font-family:Abel'>
               <button type='submit' id='dimmer-button' style='height:32px;width:200px'>Set Night Mode Times</button><br>&nbsp;
             </div>
-            <div class='enable-button'>
+            <div class='enable-button' style='color:dimGrey;font-family:Abel'>
               <button type='submit' id='dimmer-action'style='height:32px;width:200px'>Enable Night Mode</button>
             </div>
             <hr>
-            <div class='debug-checkbox'>
+            <div class='debug-checkbox' style='color:white;font-family:Abel'>
               <small><input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode</small>
             </div>
           </form>
         </div>
         <hr>
-        <p class='text-center'>&nbsp;<br>&nbsp;<small>Home Weather Station Control copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;</p>
+        <p class='text-center' style='font-family:Oswald'>&nbsp;<br>&nbsp;<small>Home Weather Station Control copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;<br><img src='https://dl.dropboxusercontent.com/u/3470182/rassilon.png' width='32' height='32'></p>
       </div>
     </div>
     <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
