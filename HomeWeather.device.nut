@@ -17,7 +17,8 @@ const LED_OFF = 0;
 const LED_RED = 1;
 const LED_AMBER = 2;
 const LED_GREEN = 3;
-const reconnectTime = 600.0;
+const RECONNECT_TIME = 600.0;
+local SWITCH_TIME = 2;
 
 // GLOBALS
 
@@ -26,17 +27,15 @@ local segment = null;
 local bar = null;
 local savedForecast = null;
 local now = null;
-local heartbeatTimer = null;
-local disconnectedTimer = null;
-local disconnectedCount = 0;
+local hbTimer = null;
+local disTimer = null;
 local nightTime = 21;
 local dayTime = 6;
-local switchTime = 2;
 local downtime = 0;
-local offAtNightFlag = true;
-local dimDisplayFlag = false;
+local offFlag = true;
+local dimFlag = false;
 local timeFlag = true;
-local disconnectedFlag = false;
+local disFlag = false;
 local debug = false;
 
 local iconset = {};
@@ -44,16 +43,16 @@ local iconset = {};
 // FUNCTIONS
 
 function heartbeat() {
-    // This function runs every 'switchTime' seconds to manage the displays
-    heartbeatTimer = imp.wakeup(switchTime, heartbeat);
+    // This function runs every 'SWITCH_TIME' seconds to manage the displays
+    hbTimer = imp.wakeup(SWITCH_TIME, heartbeat);
     segment.clearDisplay();
     now = date();
 
-    if (isDisplayOn()) {
-        // Every 'switchTime' seconds we display the temperature,
+    if (showDisplay()) {
+        // Every 'SWITCH_TIME' seconds we display the temperature,
         // alternating with the time
         if (!timeFlag) {
-            displayTemperature(savedForecast);
+            displayTemp(savedForecast);
         } else {
             displayTime();
         }
@@ -62,30 +61,30 @@ function heartbeat() {
     }
 }
 
-function isDisplayOn() {
+function showDisplay() {
     // Returns true if the display should be on, false otherwise
-    local displayOn = true;
+    local don = true;
 
-    if (offAtNightFlag) {
+    if (offFlag) {
         local h = now.hour;
         if (utilities.bstCheck()) ++h;
         if (h > 23) h = 0;
         if (h > nightTime || h < dayTime) {
-            displayOn = false;
-            if (!dimDisplayFlag) {
+            don = false;
+            if (!dimFlag) {
                 if (debug) server.log("Dimming display at " + h + "pm");
-                dimDisplayFlag = true;
+                dimFlag = true;
             }
         } else {
-            displayOn = true;
-            if (dimDisplayFlag) {
+            don = true;
+            if (dimFlag) {
                 if (debug) server.log("Brightening display at " + h + "am");
-                dimDisplayFlag = false;
+                dimFlag = false;
             }
         }
     }
 
-    return displayOn;
+    return don;
 }
 
 function displayDisconnected() {
@@ -97,9 +96,9 @@ function displayDisconnected() {
     segment.updateDisplay();
 }
 
-function displayTemperature(data) {
+function displayTemp(data) {
     // Disconnected? Indicate on the display and bail
-    if (disconnectedFlag) {
+    if (disFlag) {
         displayDisconnected();
         return;
     }
@@ -195,7 +194,7 @@ function displayWeather(data) {
     // triggered by the agent
     savedForecast = data;
 
-    if (isDisplayOn()) {
+    if (showDisplay()) {
         // Show the rain level and the current forecast icon
         displayRain(data);
         displayIcon(data);
@@ -264,15 +263,15 @@ function displayTime() {
 
 // OFFLINE OPERATION FUNCTIONS
 
-function disconnectionHandler(reason) {
+function disHandler(reason) {
     if (reason != SERVER_CONNECTED) {
-        // Tell imp to wake in 'reconnectTime' minutes and attempt to reconnect
-        disconnectedFlag = true;
+        // Tell imp to wake in 'RECONNECT_TIME' minutes and attempt to reconnect
+        disFlag = true;
         downtime = time();
-        disconnectedTimer = imp.wakeup(reconnectTime, reconnect);
+        disTimer = imp.wakeup(RECONNECT_TIME, reconnect);
     } else {
         // Back online so request a weather forecast from the agent
-        disconnectedFlag = false;
+        disFlag = false;
         downtime = time() - downtime;
         if (debug) server.log("Reconnected after " + downtime + " seconds");
         agent.send("homeweather.get.forecast", true);
@@ -280,19 +279,19 @@ function disconnectionHandler(reason) {
 }
 
 function reconnect() {
-    disconnectedTimer = null;
+    disTimer = null;
 
     if (server.isconnected()) {
-        disconnectionHandler(SERVER_CONNECTED);
+        disHandler(SERVER_CONNECTED);
     } else {
-        server.connect(disconnectionHandler, 30);
+        server.connect(disHandler, 30);
     }
 }
 
 // START OF PROGRAM
 
 // Register for unexpected disconnections
-server.onunexpecteddisconnect(disconnectionHandler);
+server.onunexpecteddisconnect(disHandler);
 
 // Show boot message
 utilities.bootMessage();
@@ -327,7 +326,7 @@ iconset.none <- [0x0,0x0,0x2,0xB9,0x9,0x6,0x0,0x0];
 agent.on("homeweather.show.forecast", displayWeather);
 agent.on("homeweather.set.dim.start", function(value) { nightTime = value; });
 agent.on("homeweather.set.dim.end", function(value) { dayTime = value; });
-agent.on("homeweather.set.offatnight", function(value) { offAtNightFlag = value; });
+agent.on("homeweather.set.offatnight", function(value) { offFlag = value; });
 agent.on("homeweather.set.debug", function(value) { debug = value; });
 
 // Request a weather forecast from the agent

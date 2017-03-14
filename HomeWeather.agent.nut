@@ -6,8 +6,8 @@
 #require "Rocky.class.nut:2.0.0"
 
 // CONSTANTS
-const forecastRefreshTime = 900;
-const htmlString = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
+const FORECAST_REFRESH = 900;
+const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 <html>
   <head>
     <title>Home Weather Station Control</title>
@@ -193,7 +193,7 @@ local savedData = null;
 
 local myLongitude = -0.147118;
 local myLatitude = 51.592907;
-local deviceSyncFlag = false;
+local syncFlag = false;
 local appVersion = "2.2.";
 local appName = "HomeWeather";
 local debug = true;
@@ -258,9 +258,9 @@ function forecastCallback(err, data) {
         if (debug && "callCount" in data) server.log("Current Forecast API call tally: " + data.callCount + "/1000");
     }
 
-    // Get the next forecast in an 'forecastRefreshTime' minutes' time
+    // Get the next forecast in an 'FORECAST_REFRESH' minutes' time
     if (nextForecastTimer) imp.cancelwakeup(nextForecastTimer);
-    nextForecastTimer = imp.wakeup(forecastRefreshTime, getForecast);
+    nextForecastTimer = imp.wakeup(FORECAST_REFRESH, getForecast);
 }
 
 function deviceReady(dummy) {
@@ -268,7 +268,7 @@ function deviceReady(dummy) {
     // or by the agent itself after an agent migration
     if (agentRestartTimer) imp.cancelwakeup(agentRestartTimer);
     agentRestartTimer = null;
-    deviceSyncFlag = true;
+    syncFlag = true;
     device.send("homeweather.set.debug", debug);
     getForecast();
 }
@@ -320,7 +320,7 @@ api = Rocky();
 
 api.get("/", function(context) {
     // Root request: just return standard HTML string
-    context.send(200, format(htmlString, http.agenturl()));
+    context.send(200, format(HTML_STRING, http.agenturl()));
 });
 
 api.get("/dimmer", function(context) {
@@ -453,7 +453,7 @@ if (debug) server.log("Starting \"" + appName + "\" build " + appVersion);
 // by a newly starting device
 agentRestartTimer = imp.wakeup(300, function() {
     agentRestartTimer = null;
-    if (!deviceSyncFlag) {
+    if (!syncFlag) {
         if (device.isconnected()) {
             if (debug) server.log("Restarting forecasting due to agent restart");
             deviceReady(true);
