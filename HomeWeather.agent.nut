@@ -193,11 +193,11 @@ local savedData = null;
 
 local myLongitude = -0.147118;
 local myLatitude = 51.592907;
-local syncFlag = false;
-local appVersion = "2.2.";
+local appVersion = "2.2";
 local appName = "HomeWeather";
 local debug = true;
 local firstRun = false;
+local syncFlag = false;
 local settings = {};
 
 // WEATHER FUNCTIONS
@@ -439,7 +439,7 @@ build.getModelName(imp.configparams.deviceid, function(err, data) {
             if (err) {
                 server.error(err);
             } else {
-                appVersion = appVersion + data;
+                appVersion = appVersion + "." + data;
             }
         }.bindenv(this));
     }
