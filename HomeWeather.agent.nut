@@ -41,8 +41,11 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             <div class='update-fields'>
               <table width='200'>
                 <tr>
+                <td align='center' colspan='2'><h4 class='dimstatus'><span>Night Mode Enabled</span></h4><br>&nbsp;</td>
+                </tr>
+                <tr>
                   <td align='right' width='145'>Night Mode Start Time</td>
-                  <td  align='right' width='46'><input type='text' id='dimmerstart' min='0' max='22' style='width:40px;color:CornflowerBlue'></input></td>
+                  <td align='right' width='46'><input type='text' id='dimmerstart' min='0' max='22' style='width:40px;color:CornflowerBlue'></input></td>
                 </tr>
                 <tr>
                   <td align='right'>Night Mode End Time</td>
@@ -55,7 +58,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
               <button type='submit' id='dimmer-button' style='height:32px;width:200px'>Set Night Mode Times</button><br>&nbsp;
             </div>
             <div class='enable-button' style='color:dimGrey;font-family:Abel'>
-              <button type='submit' id='dimmer-action'style='height:32px;width:200px'>Enable Night Mode</button>
+              <button type='submit' id='dimmer-action' style='height:32px;width:200px'>Disable Night Mode</button>
             </div>
             <hr>
             <div class='debug-checkbox' style='color:white;font-family:Abel'>
@@ -87,15 +90,14 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             var start = document.getElementById('dimmerstart').value;
             var end = document.getElementById('dimmerend').value;
             setTime(start, end);
-            $('#name-form').trigger('reset');
         }
 
         function setDimEnable(e){
             // Enable/disable night mode
             e.preventDefault();
-            state = !state;
-            setState(state);
-            $('#name-form').trigger('reset');
+            dimstate = !dimstate;
+            setDimUI(dimstate);
+            setState(dimstate);
         }
 
         function updateReadout(data) {
@@ -109,14 +111,8 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             }
 
             // Set the 'enable' button text
-            var bs = 'Disable Night Mode';
-            dimstate = true;
-            if (data.enabled == false) {
-                bs = 'Enable Night Mode';
-                dimstate = false;
-            }
-
-            $('#dimmer-action').text(bs);
+            dimstate = data.enabled;
+            setDimUI(dimstate);
 
             // Set the night mode times
             document.getElementById('dimmerstart').value = data.dimstart;
@@ -132,6 +128,11 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             setTimeout(function() {
                 getState(updateReadout);
             }, 120000);
+        }
+
+        function setDimUI(state) {
+            $('#dimmer-action').text(state ? 'Disable Night Mode' : 'Enable Night Mode');
+            $('.dimstatus span').text(state ? 'Night Mode Enabled' : 'Night Mode Disabled');
         }
 
         function getState(callback) {
