@@ -69,114 +69,117 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
     </div>
     <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
     <script>
-      var state = true;
-      var agenturl = '%s';
+        // Variables
+        var dimstate = true;
+        var agenturl = '%s';
 
-      // Get initial readout data
-      getState(updateReadout);
+        // Get initial readout data
+        getState(updateReadout);
 
-      // Set object click actions
-      $('.update-button button').click(setStateTime);
-      $('.enable-button button').click(setStateEnable);
-      $('#debug').click(setdebug);
+        // Set object click actions
+        $('.update-button button').click(setDimTime);
+        $('.enable-button button').click(setDimEnable);
+        $('#debug').click(setdebug);
 
-      function setStateTime(e){
-        // Set the night mode duration
-        e.preventDefault();
-        var start = document.getElementById('dimmerstart').value;
-        var end = document.getElementById('dimmerend').value;
-        setTime(start, end);
-        $('#name-form').trigger('reset');
-      }
-
-      function setStateEnable(e){
-        // Enable/disable night mode
-        e.preventDefault();
-        state = !state;
-        setState(state);
-        $('#name-form').trigger('reset');
-      }
-
-      function updateReadout(data) {
-        // Update the UI with data from the device
-        if (data.error) {
-          $('.error-message span').text(data.error);
-        } else {
-          // Set the weather forecast data
-          $('.temp-status span').text(data.temp);
-          $('.outlook-status span').text(data.outlook);
+        function setDimTime(e){
+            // Set the night mode duration
+            e.preventDefault();
+            var start = document.getElementById('dimmerstart').value;
+            var end = document.getElementById('dimmerend').value;
+            setTime(start, end);
+            $('#name-form').trigger('reset');
         }
 
-        // Set the 'enable' button text
-        var bs = 'Disable Night Mode';
-        state = true;
-        if (data.enabled == false) {
-          bs = 'Enable Night Dimmer';
-          state = false;
+        function setDimEnable(e){
+            // Enable/disable night mode
+            e.preventDefault();
+            state = !state;
+            setState(state);
+            $('#name-form').trigger('reset');
         }
 
-        $('#dimmer-action').text(bs);
-
-        // Set the night mode times
-        document.getElementById('dimmerstart').value = data.dimstart;
-        document.getElementById('dimmerend').value = data.dimend;
-
-        $('.text-center span').text(data.vers);
-        $('.error-message span').text(' ');
-        document.getElementById('debug').checked = data.debug;
-
-        // Auto-reload data in 120 seconds
-        setTimeout(function() { getState(updateReadout); }, 120000);
-      }
-
-      function getState(callback) {
-        // Get the data from the device
-        $.ajax({
-          url : agenturl + '/dimmer',
-          type: 'GET',
-          success : function(response) {
-            response = JSON.parse(response);
-            if (callback && ('temp' in response)) {
-              callback(response);
+        function updateReadout(data) {
+            // Update the UI with data from the device
+            if (data.error) {
+                $('.error-message span').text(data.error);
+            } else {
+                // Set the weather forecast data
+                $('.temp-status span').text(data.temp);
+                $('.outlook-status span').text(data.outlook);
             }
-          }
-        });
-      }
 
-      function setTime(start, end) {
-        // Set the night mode times
-        $.ajax({
-          url : agenturl + '/dimmer',
-          type: 'POST',
-          data: JSON.stringify({ 'dimstart' : start, 'dimend' : end }),
-          success : function(response) {
-            getState(updateReadout);
-          }
-        });
-      }
+            // Set the 'enable' button text
+            var bs = 'Disable Night Mode';
+            dimstate = true;
+            if (data.enabled == false) {
+                bs = 'Enable Night Mode';
+                dimstate = false;
+            }
 
-      function setState(aState) {
-        // Enable/disable night mode
-        $.ajax({
-          url : agenturl + '/dimmer',
-          type: 'POST',
-          data: JSON.stringify({ 'enabled' : aState }),
-          success : function(response) {
-            console.log(response);
-            getState(updateReadout);
-          }
-        });
-      }
+            $('#dimmer-action').text(bs);
 
-      function setdebug() {
-        // Tell the device to enter or leave debug mode
-        $.ajax({
-          url : agenturl + '/debug',
-          type: 'POST',
-          data: JSON.stringify({ 'debug' : document.getElementById('debug').checked })
-        });
-      }
+            // Set the night mode times
+            document.getElementById('dimmerstart').value = data.dimstart;
+            document.getElementById('dimmerend').value = data.dimend;
 
+            $('.text-center span').text(data.vers);
+            document.getElementById('debug').checked = data.debug;
+
+            // Clear the error readout
+            $('.error-message span').text(' ');
+
+            // Auto-reload data in 120 seconds
+            setTimeout(function() {
+                getState(updateReadout);
+            }, 120000);
+        }
+
+        function getState(callback) {
+            // Get the data from the device
+            $.ajax({
+                url : agenturl + '/dimmer',
+                type: 'GET',
+                success : function(response) {
+                    response = JSON.parse(response);
+                    if (callback && ('temp' in response)) {
+                        callback(response);
+                    }
+                }
+            });
+        }
+
+        function setTime(start, end) {
+            // Set the night mode times
+            $.ajax({
+                url : agenturl + '/dimmer',
+                type: 'POST',
+                data: JSON.stringify({ 'dimstart' : start, 'dimend' : end }),
+                success : function(response) {
+                    getState(updateReadout);
+                }
+            });
+        }
+
+        function setState(aState) {
+            // Enable/disable night mode
+            $.ajax({
+                url : agenturl + '/dimmer',
+                type: 'POST',
+                data: JSON.stringify({ 'enabled' : aState }),
+                success : function(response) {
+                    getState(updateReadout);
+                }
+            });
+        }
+
+        function setdebug() {
+            // Tell the device to enter or leave debug mode
+            $.ajax({
+                url : agenturl + '/debug',
+                type: 'POST',
+                data: JSON.stringify({ 'debug' : document.getElementById('debug').checked })
+            });
+        }
     </script>
   </body>
 </html>";
