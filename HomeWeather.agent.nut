@@ -64,10 +64,10 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
           </form>
         </div>
         <hr>
-        <p class='text-center' style='font-family:Oswald'><small>Home Weather Station Control copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;<br><img src='https://dl.dropboxusercontent.com/u/3470182/rassilon.png' width='32' height='32'></p>
+        <p class='text-center' style='font-family:Oswald'><small>Home Weather Station Control copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;<br><img src='https://smittytone.github.io/rassilon.png' width='32' height='32'></p>
       </div>
     </div>
-    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
     <script>
       var state = true;
       var agenturl = '%s';
@@ -76,9 +76,9 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
       getState(updateReadout);
 
       // Set object click actions
-      $('.update-button button').on('click', setStateTime);
-      $('.enable-button button').on('click', setStateEnable);
-      $('input:checkbox[name=debug]').click(setdebug);
+      $('.update-button button').click(setStateTime);
+      $('.enable-button button').click(setStateEnable);
+      $('#debug').click(setdebug);
 
       function setStateTime(e){
         // Set the night mode duration
