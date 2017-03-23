@@ -25,3 +25,13 @@ You can find more information about the integration [here](https://electricimp.c
 ## Squinter
 
 The code makes use of the accompanying library, HT16K33Bar, in the file `ht16k33bar.class.nut`. If you are using the macOS tool Squinter (download [here](https://electricimp.com/docs/attachments/squinter/squinter_1_0_119.zip)) to manage your Electric Imp projects, the device code is set up (line 5) to import and pre-process this file. Alternatively, you can simply paste in the file contents over line 5.
+
+## Control
+
+The Weather Station has its own, web-based control UI, accessed at the agent URL.
+
+![Weather Station UI](grab01.png)
+
+## Licence
+
+The Weather Station design and software is copyright &copy; 2014-17 Tony Smith and made available under the [MIT Licence](./LICENSE).
