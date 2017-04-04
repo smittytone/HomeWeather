@@ -12,8 +12,8 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
   <head>
     <title>Home Weather Station Control</title>
     <link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css'>
-    <link href='//fonts.googleapis.com/css?family=Abel' rel='stylesheet'>
-    <link href='//fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Abel' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
     <link rel='apple-touch-icon' href='https://smittytone.github.io/images/ati-wstation.png'>
     <link rel='shortcut icon' href='https://smittytone.github.io/images/ico-wstation.ico'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
@@ -67,7 +67,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             </div>
         </div>
         <hr>
-        <p class='text-center' style='font-family:Oswald'><small>Home Weather Station Control copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;<br><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32'></p>
+        <p class='text-center' style='font-family:Oswald'><small>Home Weather Station Control copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;<br><a href='https://github.com/smittytone/HomeWeather'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32'></a></p>
       </div>
     </div>
     <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
