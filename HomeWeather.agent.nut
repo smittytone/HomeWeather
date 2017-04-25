@@ -2,7 +2,6 @@
 // Copyright Tony Smith, 2015-2017
 
 #require "DarkSky.class.nut:1.0.1"
-#require "BuildAPIAgent.class.nut:1.1.1"
 #require "Rocky.class.nut:2.0.0"
 
 // CONSTANTS
@@ -209,14 +208,13 @@ local request = null;
 local forecaster = null;
 local nextForecastTimer = null;
 local agentRestartTimer = null;
-local build = null;
 local apiKey = null;
 local api = null;
 local savedData = null;
 
 local myLongitude = -0.147118;
 local myLatitude = 51.592907;
-local appVersion = "2.2";
+local appVersion = "2.3";
 local appName = "HomeWeather";
 local debug = true;
 local firstRun = false;
@@ -274,7 +272,7 @@ function forecastCallback(err, data) {
                 sendData.rain <- item.precipProbability;
                 device.send("homeweather.show.forecast", sendData);
                 savedData = sendData;
-                if (debug) server.log("Forecast: " + sendData.cast + ". Temp: " + sendData.temp + "\'C. Chance of rain: " + (sendData.rain * 100) + "%");
+                if (debug) server.log("Forecast: " + sendData.cast + ". Temperature: " + sendData.temp + "C. Chance of rain: " + (sendData.rain * 100) + "%");
             }
         }
 
@@ -300,7 +298,6 @@ function deviceReady(dummy) {
 
 // You will need to uncomment the following lines...
 // forecaster = DarkSky("<YOUR_API_KEY>");
-// build = BuildAPIAgent("<YOUR_API_KEY>");
 // apiKey = "<YOUR_SELF-GENERATED_UUID_(OPTIONAL)>"
 
 // ...and comment out the following line
@@ -451,22 +448,6 @@ api.post("/debug", function(context) {
 
     context.send(200, (debug ? "Debug on" : "Debug off"));
 });
-
-// Comment out the following 16 lines if you are not using the Build API integration
-build.getModelName(imp.configparams.deviceid, function(err, data) {
-    if (err) {
-        server.error(err);
-    } else {
-        appName = data;
-        build.getLatestBuildNumber(appName, function(err, data) {
-            if (err) {
-                server.error(err);
-            } else {
-                appVersion = appVersion + "." + data;
-            }
-        }.bindenv(this));
-    }
-}.bindenv(this));
 
 if (debug) server.log("Starting \"" + appName + "\" build " + appVersion);
 

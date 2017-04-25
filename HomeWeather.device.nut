@@ -261,6 +261,16 @@ function displayTime() {
     segment.updateDisplay();
 }
 
+function bootMessage() {
+    local a = split(imp.getsoftwareversion(), "-");
+    server.log("impOS version " + a[2]);
+    local i = imp.net.info();
+    local w = i.interface[i.active];
+    local s = ("connectedssid" in w) ? w.connectedssid : w.ssid;
+    local t = (w.type == "wifi") ? "Connected by WiFi on SSID \"" + s + "\"" : "Ethernet";
+    server.log(t + " with IP address " + i.ipv4.address);
+}
+
 // OFFLINE OPERATION FUNCTIONS
 
 function disHandler(reason) {
@@ -294,7 +304,7 @@ function reconnect() {
 server.onunexpecteddisconnect(disHandler);
 
 // Show boot message
-utilities.bootMessage();
+bootMessage();
 
 // Set up instanced classes
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);

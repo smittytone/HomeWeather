@@ -1,4 +1,4 @@
-# HomeWeather 2.2
+# HomeWeather 2.3
 
 This software powers a home weather station based on the Electric Imp Platform.
 
@@ -16,23 +16,27 @@ The station uses [Dark Sky](https://darksky.net/)’s Dark Sky API for regular w
 
 The code is set to deliver Dark Sky forecast in UK units. You may wish to change this according to your location. Look for line 161 in the agent code.
 
-## Build API Integration
-
-The agent code makes use of [Electric Imp’s Build API](https://electricimp.com/docs/buildapi/) to acquire code version data. You can get your own Build API key by logging into the Electric Imp IDE and selecting ‘Build API Keys’ from the Username menu in the top right.
-
-You can also comment out Build-related lines 186-188 to remove this functionality.
-
-You can find more information about the integration [here](https://electricimp.com/docs/libraries/utilities/buildapiagent/).
-
 ## Squinter
 
-The code makes use of the accompanying library, HT16K33Bar, in the file `ht16k33bar.class.nut`. If you are using the macOS tool Squinter (download [here](https://electricimp.com/docs/attachments/squinter/squinter_1_0_119.zip)) to manage your Electric Imp projects, the device code is set up (line 5) to import and pre-process this file. Alternatively, you can simply paste in the file contents over line 5.
+The code makes use of the accompanying library, HT16K33Bargraph, in the file `ht16k33bargraph.class.nut`. If you are using the macOS tool Squinter (download [here](https://electricimp.com/docs/attachments/squinter/squinter_1_0_119.zip)) to manage your Electric Imp projects, the device code is set up (line 8) to import and pre-process this file. Alternatively, you can simply paste in the file contents over line 8.
 
 ## Control
 
 The Weather Station has its own, web-based control UI, accessed at the agent URL.
 
 ![Weather Station UI](grab01.png)
+
+## Release Notes
+
+### 2.3
+
+- Remove Build API integration
+- Reworked web UI
+- Add device boot message
+
+### 2.2
+
+- Initial re-release
 
 ## Licence
 
