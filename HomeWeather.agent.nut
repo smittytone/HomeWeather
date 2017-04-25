@@ -9,69 +9,85 @@
 const FORECAST_REFRESH = 900;
 const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 <html>
-  <head>
-    <title>Home Weather Station Control</title>
-    <link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css'>
-    <link href='https://fonts.googleapis.com/css?family=Abel' rel='stylesheet'>
-    <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
-    <link rel='apple-touch-icon' href='https://smittytone.github.io/images/ati-wstation.png'>
-    <link rel='shortcut icon' href='https://smittytone.github.io/images/ico-wstation.ico'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <style>
-      .center { margin-left: auto; margin-right: auto; margin-bottom: auto; margin-top: auto; }
-      body {background-color: dimGrey;}
-      p {color: white; font-family: Abel}
-      h2 {color: white; font-family: Abel; font-weight:bold}
-      h4 {color: white; font-family: Abel}
-      td {color: white; font-family: Abel}
-    </style>
-  </head>
-  <body>
-    <div class='container' style='padding: 20px'>
-      <div style='border: 2px solid white'>
-        <h2 class='text-center'>Home Weather Station Control <span></span><br>&nbsp;</h2>
-        <div class='current-status'>
-          <h4 class='temp-status' align='center'>Current Temperature: <span></span>&deg;C&nbsp;</h4>
-          <h4 class='outlook-status' align='center'>Weather Outlook: <span></span></h4>
-          <p align='center'>Forecast updates automatically every two minutes</p>
-          <p class='error-message' align='center'><i><span></span></i></p>
+    <head>
+        <title>Home Weather Station Control</title>
+        <link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css'>
+        <link href='https://fonts.googleapis.com/css?family=Abel' rel='stylesheet'>
+        <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
+        <link rel='apple-touch-icon' href='https://smittytone.github.io/images/ati-wstation.png'>
+        <link rel='shortcut icon' href='https://smittytone.github.io/images/ico-wstation.ico'>
+        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+        <style>
+            .center { margin-left: auto; margin-right: auto; margin-bottom: auto; margin-top: auto; }
+            body {background-color: dimGrey;}
+            p {color: white; font-family: Abel}
+            h2 {color: white; font-family: Abel; font-weight:bold}
+            h4 {color: white; font-family: Abel}
+            td {color: white; font-family: Abel}
+            p.showhide {cursor: pointer}
+        </style>
+    </head>
+    <body>
+        <div class='container' style='padding: 20px'>
+            <div style='border: 2px solid white'>
+                <h2 class='text-center'>Home Weather Station Control <span></span><br>&nbsp;</h2>
+                <table width='100%%'>
+                    <tr>
+                        <td width='20%%'>&nbsp;</td>
+                        <td width='60%%'>
+                            <div class='current-status'>
+                                <h4 class='temp-status' align='center'>Current Temperature: <span></span>&deg;C&nbsp;</h4>
+                                <h4 class='outlook-status' align='center'>Weather Outlook: <span></span></h4>
+                                <p align='center'>Forecast updates automatically every two minutes</p>
+                                <p class='error-message' align='center'><i><span></span></i></p>
+                            </div>
+                            <br>
+                            <hr>
+                            <div class='controls' align='center'>
+                                <div class='update-fields'>
+                                    <table width='100%%'>
+                                        <tr>
+                                            <td align='center' colspan='2'><h4 class='dimstatus'><span>Night Mode Enabled</span></h4><br></td>
+                                        </tr>
+                                        <tr>
+                                            <td align='right' width='57%%'>Night Mode Start Time&nbsp;</td>
+                                            <td align='left' width='43%%'>&nbsp;<input type='text' id='dimmerstart' min='0' max='22' style='width:40px;color:CornflowerBlue'></input></td>
+                                        </tr>
+                                        <tr>
+                                            <td align='right'>Night Mode End Time&nbsp;</td>
+                                            <td align='left'>&nbsp;<input type='text' id='dimmerend' min='1' max='23' style='width:40px;color:CornflowerBlue'></input></td>
+                                        </tr>
+                                    </table>
+                                    <p>&nbsp;</p>
+                                </div>
+                                <div class='update-button' style='color:black;font-family:Abel'>
+                                    <button type='submit' id='dimmer-button' style='height:32px;width:200px'>Set Night Mode Times</button><br>&nbsp;
+                                </div>
+                                <div class='enable-button' style='color:black;font-family:Abel'>
+                                    <button type='submit' id='dimmer-action' style='height:32px;width:200px'>Disable Night Mode</button>
+                                </div>
+                                <hr>
+                                <div class='advancedsettings'>
+                                    <p class='showhide' align='center'>Click for Advanced Settings</p>
+                                    <div class='advanced' align='center'>
+                                        <div class='debug-checkbox' style='color:white;font-family:Abel'>
+                                            <small><input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
+                            <p class='text-center' style='font-family:Oswald'><small>Home Weather Station Control copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;<br><a href='https://github.com/smittytone/HomeWeather'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32'></a></p>
+                        </td>
+                        <td width='20%%'>&nbsp;</td>
+                    </tr>
+                </table>
+            </div>
         </div>
-        <br>
-        <hr>
-        <div class='controls' align='center'>
-            <div class='update-fields'>
-              <table width='200'>
-                <tr>
-                <td align='center' colspan='2'><h4 class='dimstatus'><span>Night Mode Enabled</span></h4><br>&nbsp;</td>
-                </tr>
-                <tr>
-                  <td align='right' width='145'>Night Mode Start Time</td>
-                  <td align='right' width='46'><input type='text' id='dimmerstart' min='0' max='22' style='width:40px;color:CornflowerBlue'></input></td>
-                </tr>
-                <tr>
-                  <td align='right'>Night Mode End Time</td>
-                  <td align='right'><input type='text' id='dimmerend' min='1' max='23' style='width:40px;color:CornflowerBlue'></input></td>
-                </tr>
-              </table>
-              <p>&nbsp;</p>
-            </div>
-            <div class='update-button' style='color:dimGrey;font-family:Abel'>
-              <button type='submit' id='dimmer-button' style='height:32px;width:200px'>Set Night Mode Times</button><br>&nbsp;
-            </div>
-            <div class='enable-button' style='color:dimGrey;font-family:Abel'>
-              <button type='submit' id='dimmer-action' style='height:32px;width:200px'>Disable Night Mode</button>
-            </div>
-            <hr>
-            <div class='debug-checkbox' style='color:white;font-family:Abel'>
-              <small><input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode</small>
-            </div>
-        </div>
-        <hr>
-        <p class='text-center' style='font-family:Oswald'><small>Home Weather Station Control copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;<br><a href='https://github.com/smittytone/HomeWeather'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32'></a></p>
-      </div>
-    </div>
     <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
     <script>
+        $('.advanced').hide();
+
         // Variables
         var dimstate = true;
         var agenturl = '%s';
@@ -83,6 +99,9 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
         $('.update-button button').click(setDimTime);
         $('.enable-button button').click(setDimEnable);
         $('#debug').click(setdebug);
+        $('.showhide').click(function(){
+            $('.advanced').toggle();
+        });
 
         function setDimTime(e){
             // Set the night mode duration
