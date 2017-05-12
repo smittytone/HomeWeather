@@ -1,9 +1,11 @@
 // Home Weather - wall-mount weather Station
 // Copyright Tony Smith, 2015-2017
 
-#require "HT16K33Segment.class.nut:1.2.0"
-#require "ht16k33matrix.class.nut:1.2.0"
 #require "utilities.nut:1.0.0"
+
+#import "../HT16K33Segment/HT16K33Segment.class.nut"
+
+#import "../ht16k33matrix/ht16k33matrix.class.nut"
 
 #import "../ht16k33bargraph/ht16k33bargraph.class.nut"
 
@@ -29,13 +31,16 @@ local savedForecast = null;
 local now = null;
 local hbTimer = null;
 local disTimer = null;
+
 local nightTime = 21;
 local dayTime = 6;
 local downtime = 0;
+
 local offFlag = true;
 local dimFlag = false;
 local timeFlag = true;
 local disFlag = false;
+local displayFlag = false;
 local debug = false;
 
 local iconset = {};
@@ -45,12 +50,23 @@ local iconset = {};
 function heartbeat() {
     // This function runs every 'SWITCH_TIME' seconds to manage the displays
     hbTimer = imp.wakeup(SWITCH_TIME, heartbeat);
-    segment.clearDisplay();
     now = date();
 
     if (showDisplay()) {
+        // The displays should be active
+        if (!displayFlag) {
+            // We have not set the 'display on' flag, so
+            // set it and bring up the displays
+            displayFlag = true;
+            matrix.powerUp();
+            bar.powerUp;
+            segment.powerUp()
+        }
+
         // Every 'SWITCH_TIME' seconds we display the temperature,
         // alternating with the time
+        segment.clearDisplay();
+
         if (!timeFlag) {
             displayTemp(savedForecast);
         } else {
@@ -58,25 +74,35 @@ function heartbeat() {
         }
 
         timeFlag = !timeFlag;
+    } else {
+        // We should not  be showing the display
+        if (displayFlag) {
+            // If we have set the 'display on' flag,
+            // unset it and power down the displays
+            displayFlag = false;
+            matrix.powerDown();
+            bar.powerDown();
+            segment.powerDown();
+        }
     }
 }
 
 function showDisplay() {
     // Returns true if the display should be on, false otherwise
-    local don = true;
+    local d = true;
 
     if (offFlag) {
         local h = now.hour;
         if (utilities.bstCheck()) ++h;
         if (h > 23) h = 0;
         if (h > nightTime || h < dayTime) {
-            don = false;
+            d = false;
             if (!dimFlag) {
                 if (debug) server.log("Dimming display at " + h + "pm");
                 dimFlag = true;
             }
         } else {
-            don = true;
+            d = true;
             if (dimFlag) {
                 if (debug) server.log("Brightening display at " + h + "am");
                 dimFlag = false;
@@ -84,7 +110,7 @@ function showDisplay() {
         }
     }
 
-    return don;
+    return d;
 }
 
 function displayDisconnected() {
@@ -104,7 +130,7 @@ function displayTemp(data) {
     }
 
     // No data to display? Bail
-    if (data == null) return;
+    if (data == null || !displayFlag) return;
 
     // Temperature is in Celsius (see agent code)
     segment.clearBuffer(16);
@@ -177,54 +203,10 @@ function displayTemp(data) {
     segment.writeChar(4, 0x63).setColon(false).updateDisplay();
 }
 
-function displayWeather(data) {
-    // This is intended only to be called in response to data from the agent
-    // It manages the matrix LED and the LED bar graph
-
-    if (data == null) {
-        // No passed in weather data? Use the last forecast
-        if (savedForecast != null) {
-            data = saveForecast;
-        } else {
-            return;
-        }
-    }
-
-    // Save the current forecast for next time, in case the function is NOT
-    // triggered by the agent
-    savedForecast = data;
-
-    if (showDisplay()) {
-        // Show the rain level and the current forecast icon
-        displayRain(data);
-        displayIcon(data);
-    } else {
-        // Clear the rain gauge and weather matrix if we are out of hours
-        bar.clear().draw();
-        matrix.clearDisplay();
-    }
-}
-
-function displayRain(data) {
-    bar.clear().fill((23.0 * data.rain.tofloat()), LED_AMBER).draw();
-}
-
-function displayIcon(data) {
-    // Display the weather type on the matrix
-    matrix.displayLine(data.cast);
-
-    local icon;
-	try {
-    	icon = clone(iconset[data.icon]);
-    } catch (error) {
-    	icon = clone(iconset[none]);
-    }
-
-    // Display the weather icon
-    matrix.displayIcon(icon);
-}
-
 function displayTime() {
+    // No need to display the time? Bail
+    if (!displayFlag) return;
+
     local h = now.hour;
     local m = 0;
 
@@ -259,6 +241,49 @@ function displayTime() {
 
     segment.setColon(true);
     segment.updateDisplay();
+}
+
+function displayWeather(data) {
+    // This is intended only to be called in response to data from the agent
+    // It manages the matrix LED and the LED bar graph
+
+    if (data == null) {
+        // No passed in weather data? Use the last forecast
+        if (savedForecast == null) return;
+        data = saveForecast;
+    }
+
+    // Save the current forecast for next time, in case the function is NOT
+    // triggered by the agent
+    savedForecast = data;
+
+    if (displayFlag) {
+        // Show the rain level and the current forecast icon
+        displayRain(data);
+        displayIcon(data);
+    }
+}
+
+function displayRain(data) {
+    // Set the rain gauge
+    // Should not be called if the display should be off
+    bar.clear().fill((23.0 * data.rain.tofloat()), LED_AMBER).draw();
+}
+
+function displayIcon(data) {
+    // Display the weather type on the matrix
+    // Should not be called if the display should be off
+    matrix.displayLine(data.cast);
+
+    local icon;
+	try {
+    	icon = clone(iconset[data.icon]);
+    } catch (error) {
+    	icon = clone(iconset[none]);
+    }
+
+    // Display the weather icon
+    matrix.displayIcon(icon);
 }
 
 function bootMessage() {
