@@ -24,7 +24,7 @@ The device code makes use of the accompanying libraries, HT16K33Bargraph, HT16K3
 - [HT16K33Segment](https://github.com/smittytone/HT16K33Segment)
 - [HT16K33Matrix](https://github.com/smittytone/HT16K33Matrix)
 
-If you are using the macOS tool Squinter (download [here](https://electricimp.com/docs/attachments/squinter/squinter_1_0_119.zip)) to manage your Electric Imp projects, the the device code is set up to import and pre-process these file. You may need to change the #import statements to reflect the location of the libraries on your machine. Alternatively, you can simply paste in the contents of each file over the respective #import statement.
+If you are using the macOS tool Squinter (download [here](https://electricimp.com/docs/attachments/squinter/squinter_1_0_119.zip)) to manage your Electric Imp projects, the the device code is set up to import and pre-process these files. You may need to change the #import statements to reflect the location of the libraries on your machine. Alternatively, you can simply paste in the contents of each file over the respective #import statement.
 
 ## Control
 
