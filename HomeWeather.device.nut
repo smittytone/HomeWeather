@@ -19,8 +19,10 @@ const LED_OFF = 0;
 const LED_RED = 1;
 const LED_AMBER = 2;
 const LED_GREEN = 3;
+const DISPLAY_ON = 0xFF;
+const DISPLAY_OFF = 0x00;
 const RECONNECT_TIME = 600.0;
-local SWITCH_TIME = 2;
+const SWITCH_TIME = 2;
 
 // GLOBALS
 
@@ -36,11 +38,10 @@ local nightTime = 21;
 local dayTime = 6;
 local downtime = 0;
 
-local offFlag = true;
-local dimFlag = false;
+local nightFlag = true;
+local displayState = true;
 local timeFlag = true;
 local disFlag = false;
-local displayFlag = false;
 local debug = false;
 
 local iconset = {};
@@ -50,17 +51,21 @@ local iconset = {};
 function heartbeat() {
     // This function runs every 'SWITCH_TIME' seconds to manage the displays
     hbTimer = imp.wakeup(SWITCH_TIME, heartbeat);
-    now = date();
 
-    if (showDisplay()) {
-        // The displays should be active
-        if (!displayFlag) {
-            // We have not set the 'display on' flag, so
-            // set it and bring up the displays
-            displayFlag = true;
+    now = date();
+    local hour = now.hour;
+    if (utilities.bstCheck()) hour++;
+    if (hour > 23) hour = 0;
+
+    if (showDisplay(hour)) {
+        // The displays should be ON
+        if (displayState == DISPLAY_OFF) {
+            // 'displayState' hasn't been updated so power up the LEDs
+            segment.powerUp();
             matrix.powerUp();
             bar.powerUp;
-            segment.powerUp()
+            displayState = DISPLAY_ON;
+            if (debug) server.log("Brightening display at " + hour + "pm");
         }
 
         // Every 'SWITCH_TIME' seconds we display the temperature,
@@ -75,42 +80,21 @@ function heartbeat() {
 
         timeFlag = !timeFlag;
     } else {
-        // We should not  be showing the display
-        if (displayFlag) {
-            // If we have set the 'display on' flag,
-            // unset it and power down the displays
-            displayFlag = false;
+        // The display should be OFF
+        if (displayState == DISPLAY_ON) {
+            // 'displayState' hasn't been updated so power down the LEDs
+            segment.powerDown();
             matrix.powerDown();
             bar.powerDown();
-            segment.powerDown();
+            displayState = DISPLAY_OFF;
+            if (debug) server.log("Dimming display at " + hour + "pm");
         }
     }
 }
 
-function showDisplay() {
-    // Returns true if the display should be on, false otherwise
-    local d = true;
-
-    if (offFlag) {
-        local h = now.hour;
-        if (utilities.bstCheck()) ++h;
-        if (h > 23) h = 0;
-        if (h > nightTime || h < dayTime) {
-            d = false;
-            if (!dimFlag) {
-                if (debug) server.log("Dimming display at " + h + "pm");
-                dimFlag = true;
-            }
-        } else {
-            d = true;
-            if (dimFlag) {
-                if (debug) server.log("Brightening display at " + h + "am");
-                dimFlag = false;
-            }
-        }
-    }
-
-    return d;
+function showDisplay(current) {
+    // Returns true if the display should be on, false otherwise - default is true / on
+    return ((nightFlag && (current > nightTime || current < dayTime)) ? false : true);
 }
 
 function displayDisconnected() {
@@ -129,11 +113,10 @@ function displayTemp(data) {
         return;
     }
 
-    // No data to display? Bail
-    if (data == null || !displayFlag) return;
+    // No data to display or the display should be off? Bail
+    if (data == null) return;
 
     // Temperature is in Celsius (see agent code)
-    segment.clearBuffer(16);
     local minusFlag = false;
     local temperature = data.temp.tofloat();
     if (temperature < 0.1 && temperature > -0.1) temperature = 0.0;
@@ -204,9 +187,6 @@ function displayTemp(data) {
 }
 
 function displayTime() {
-    // No need to display the time? Bail
-    if (!displayFlag) return;
-
     local h = now.hour;
     local m = 0;
 
@@ -239,8 +219,7 @@ function displayTime() {
         segment.writeNumber(3, 0, false);
     }
 
-    segment.setColon(true);
-    segment.updateDisplay();
+    segment.setColon(true).updateDisplay();
 }
 
 function displayWeather(data) {
@@ -257,7 +236,11 @@ function displayWeather(data) {
     // triggered by the agent
     savedForecast = data;
 
-    if (displayFlag) {
+    local hour = now.hour;
+    if (utilities.bstCheck()) hour++;
+    if (hour > 23) hour = 0;
+
+    if (showDisplay(hour)) {
         // Show the rain level and the current forecast icon
         displayRain(data);
         displayIcon(data);
@@ -361,7 +344,7 @@ iconset.none <- [0x0,0x0,0x2,0xB9,0x9,0x6,0x0,0x0];
 agent.on("homeweather.show.forecast", displayWeather);
 agent.on("homeweather.set.dim.start", function(value) { nightTime = value; });
 agent.on("homeweather.set.dim.end", function(value) { dayTime = value; });
-agent.on("homeweather.set.offatnight", function(value) { offFlag = value; });
+agent.on("homeweather.set.offatnight", function(value) { nightFlag = value; });
 agent.on("homeweather.set.debug", function(value) { debug = value; });
 
 // Request a weather forecast from the agent
