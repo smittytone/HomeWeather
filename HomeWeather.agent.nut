@@ -49,12 +49,15 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                                             <td align='center' colspan='2'><h4 class='dimstatus'><span>Night Mode Enabled</span></h4><br></td>
                                         </tr>
                                         <tr>
-                                            <td align='right' width='57%%'>Night Mode Start Time&nbsp;</td>
-                                            <td align='left' width='43%%'>&nbsp;<input type='text' id='dimmerstart' min='0' max='22' style='width:40px;color:CornflowerBlue'></input></td>
+                                            <td align='right' width='58%%'>Night Mode Start Time (hour)&nbsp;</td>
+                                            <td align='left' width='42%%'>&nbsp;<input type='text' id='dimmerstart' min='0' max='22' style='width:40px;color:CornflowerBlue'></input></td>
                                         </tr>
                                         <tr>
-                                            <td align='right'>Night Mode End Time&nbsp;</td>
+                                            <td align='right'>Night Mode End Time (hour)&nbsp;</td>
                                             <td align='left'>&nbsp;<input type='text' id='dimmerend' min='1' max='23' style='width:40px;color:CornflowerBlue'></input></td>
+                                        </tr>
+                                        <tr>
+                                            <td align='center' colspan='2'><small>Set the on and off times in the 24-hour clock format</small></td>
                                         </tr>
                                     </table>
                                     <p>&nbsp;</p>
@@ -70,7 +73,10 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                                     <p class='showhide' align='center'>Click for Advanced Settings</p>
                                     <div class='advanced' align='center'>
                                         <div class='debug-checkbox' style='color:white;font-family:Abel'>
-                                            <small><input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode</small>
+                                            <small><input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode</small><br>&nbsp;
+                                        </div>
+                                        <div class='reset-button' style='color:black;font-family:Abel'>
+                                            <button type='submit' id='resett-button' style='height:32px;width:200px'>Reset Station</button>
                                         </div>
                                     </div>
                                 </div>
@@ -97,7 +103,8 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
         // Set object click actions
         $('.update-button button').click(setDimTime);
         $('.enable-button button').click(setDimEnable);
-        $('#debug').click(setdebug);
+        $('.reset-button button').click(doReset);
+        $('#debug').click(setDebug);
         $('.showhide').click(function(){
             $('.advanced').toggle();
         });
@@ -191,12 +198,24 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             });
         }
 
-        function setdebug() {
+        function setDebug() {
             // Tell the device to enter or leave debug mode
             $.ajax({
                 url : agenturl + '/debug',
                 type: 'POST',
                 data: JSON.stringify({ 'debug' : document.getElementById('debug').checked })
+            });
+        }
+
+        function doReset() {
+            // Tell the device to reset itself
+            $.ajax({
+                url : agenturl + '/reset',
+                type: 'POST',
+                data: JSON.stringify({ 'reset' : true }),
+                success: function(response) {
+                    getState(updateReadout);
+                }
             });
         }
     </script>
@@ -214,10 +233,9 @@ local savedData = null;
 
 local myLongitude = -0.147118;
 local myLatitude = 51.592907;
-local appVersion = "2.3";
+local appVersion = "2.4";
 local appName = "HomeWeather";
 local debug = true;
-local firstRun = false;
 local syncFlag = false;
 local settings = {};
 
@@ -294,6 +312,21 @@ function deviceReady(dummy) {
     getForecast();
 }
 
+function resetSettings() {
+    // Reset the settings to the defaults
+    server.save({});
+
+    settings = {};
+    settings.dimstart <- 22;
+    settings.dimend <- 7;
+    settings.offatnight <- false;
+    settings.debug <- false;
+    debug = false;
+
+    local result = server.save(settings);
+    if (result != 0) server.error("Settings could not be saved");
+}
+
 // PROGRAM START
 
 // You will need to uncomment the following lines...
@@ -312,27 +345,12 @@ forecaster.setUnits("uk");
 device.on("homeweather.get.forecast", deviceReady);
 
 // Manage app settings
-// Clear app settings if required
-if (firstRun) server.save({});
-
 settings = server.load();
+
 if (settings.len() == 0) {
     // No settings saved so set the defaults
-    settings.dimstart <- 21;
-    settings.dimend <- 6;
-    settings.offatnight <- true;
-    settings.debug <- false;
-
-    // Save the settings immediately
-    local result = server.save(settings);
-    if (result != 0) server.error("Settings could not be saved");
-}
-
-// Fix for added settings fields
-if ("debug" in settings) {
-    debug = settings.debug;
-} else {
-    settings.debug <- debug;
+    server.log("First run - setting defaults");
+    resetSettings();
 }
 
 // Set up the API
@@ -439,6 +457,31 @@ api.post("/debug", function(context) {
             settings.debug = debug;
             local result = server.save(settings);
             if (result != 0) server.error("Could not save settings (code: " + result + ")");
+        }
+    } catch (err) {
+        server.error(err);
+        context.send(400, "Bad data posted");
+        return;
+    }
+
+    context.send(200, (debug ? "Debug on" : "Debug off"));
+});
+
+api.post("/reset", function(context) {
+    try {
+        local data = http.jsondecode(context.req.rawbody);
+        if ("reset" in data) {
+            if (data.reset) {
+                // Perform the reset
+                server.log("Resetting Weather Station");
+                resetSettings();
+
+                // Update the device
+                device.send("homeweather.set.offatnight", false);
+                device.send("homeweather.set.dim.start", settings.dimstart);
+                device.send("homeweather.set.dim.end", settings.dimend);
+                device.send("homeweather.set.debug", false);
+            }
         }
     } catch (err) {
         server.error(err);

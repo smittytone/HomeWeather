@@ -38,11 +38,12 @@ local nightTime = 21;
 local dayTime = 6;
 local downtime = 0;
 
+local displayState = DISPLAY_ON;
+
 local nightFlag = true;
-local displayState = true;
 local timeFlag = true;
 local disFlag = false;
-local debug = false;
+local debug = true;
 
 local iconset = {};
 
@@ -53,23 +54,23 @@ function heartbeat() {
     hbTimer = imp.wakeup(SWITCH_TIME, heartbeat);
 
     now = date();
-    local hour = now.hour;
-    if (utilities.bstCheck()) hour++;
-    if (hour > 23) hour = 0;
+    if (utilities.bstCheck()) now.hour++;
+    if (now.hour > 23) now.hour = 0;
 
-    if (showDisplay(hour)) {
+    if (showDisplay(now.hour, now.min)) {
         // The displays should be ON
         if (displayState == DISPLAY_OFF) {
             // 'displayState' hasn't been updated so power up the LEDs
             segment.powerUp();
             matrix.powerUp();
-            bar.powerUp;
+            bar.powerUp();
             displayState = DISPLAY_ON;
-            if (debug) server.log("Brightening display at " + hour + "pm");
+            if (debug) server.log("Brightening display at " + now.hour + (now.hour < 12 ? "am" : "pm"));
         }
 
         // Every 'SWITCH_TIME' seconds we display the temperature,
         // alternating with the time
+        // autoBrightness();
         segment.clearDisplay();
 
         if (!timeFlag) {
@@ -87,14 +88,34 @@ function heartbeat() {
             matrix.powerDown();
             bar.powerDown();
             displayState = DISPLAY_OFF;
-            if (debug) server.log("Dimming display at " + hour + "pm");
+            if (debug) server.log("Dimming display at " + now.hour + (now.hour < 12 ? "am" : "pm"));
         }
     }
 }
 
-function showDisplay(current) {
+function showDisplay(hour, minute) {
     // Returns true if the display should be on, false otherwise - default is true / on
-    return ((nightFlag && (current > nightTime || current < dayTime)) ? false : true);
+    local flag = true;
+
+    // If we have auto-dimming set, we need only check whether we need to turn the display off
+    if (nightFlag && (hour < dayTime || (hour == nightTime && minute > 0) || hour > nightTime)) flag = false;
+
+    return flag;
+}
+
+function autoBrightness() {
+    // ********** EXPERIMENTAL **********
+    // 'bright' value is a 16-but unsigned value: 0 - 65535
+    // Use to generate a display brightness between 0 and 15
+    local l = hardware.lightlevel();
+    local bright = (l.tofloat() / 65535.0) * 15;
+    bright = bright.tointeger() - 4;
+    if (bright < 0) bright = 0;
+
+    segment.setBrightness(bright);
+    matrix.setBrightness(bright);
+    bar.setBrightness(bright);
+    if (debug) server.log("Brightness set to " + bright + "(light level: " + l + ")");
 }
 
 function displayDisconnected() {
@@ -190,9 +211,6 @@ function displayTime() {
     local h = now.hour;
     local m = 0;
 
-    if (utilities.bstCheck()) ++h;
-    if (h > 23) h = 0;
-
     if (h < 10) {
         segment.writeNumber(0, 16, false);
         segment.writeNumber(1, h, false);
@@ -236,11 +254,7 @@ function displayWeather(data) {
     // triggered by the agent
     savedForecast = data;
 
-    local hour = now.hour;
-    if (utilities.bstCheck()) hour++;
-    if (hour > 23) hour = 0;
-
-    if (showDisplay(hour)) {
+    if (showDisplay(now.hour, now.min)) {
         // Show the rain level and the current forecast icon
         displayRain(data);
         displayIcon(data);
@@ -267,16 +281,6 @@ function displayIcon(data) {
 
     // Display the weather icon
     matrix.displayIcon(icon);
-}
-
-function bootMessage() {
-    local a = split(imp.getsoftwareversion(), "-");
-    server.log("impOS version " + a[2]);
-    local i = imp.net.info();
-    local w = i.interface[i.active];
-    local s = ("connectedssid" in w) ? w.connectedssid : w.ssid;
-    local t = (w.type == "wifi") ? "Connected by WiFi on SSID \"" + s + "\"" : "Ethernet";
-    server.log(t + " with IP address " + i.ipv4.address);
 }
 
 // OFFLINE OPERATION FUNCTIONS
@@ -306,22 +310,22 @@ function reconnect() {
     }
 }
 
+// Load in generic boot message code
+#include "../generic/bootmessage.nut"
+
 // START OF PROGRAM
 
 // Register for unexpected disconnections
 server.onunexpecteddisconnect(disHandler);
 
-// Show boot message
-bootMessage();
-
 // Set up instanced classes
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
 
 matrix = HT16K33Matrix(hardware.i2c89, 0x70, true);
-matrix.init(0, 3);
+matrix.init(1, 3);
 
 segment = HT16K33Segment(hardware.i2c89, 0x72);
-segment.init(16, 4, false);
+segment.init(16, 1, false);
 
 bar = HT16K33Bargraph(hardware.i2c89, 0x74, true);
 bar.init(1, false);
@@ -342,10 +346,26 @@ iconset.none <- [0x0,0x0,0x2,0xB9,0x9,0x6,0x0,0x0];
 
 // Set up agent interaction
 agent.on("homeweather.show.forecast", displayWeather);
-agent.on("homeweather.set.dim.start", function(value) { nightTime = value; });
-agent.on("homeweather.set.dim.end", function(value) { dayTime = value; });
-agent.on("homeweather.set.offatnight", function(value) { nightFlag = value; });
-agent.on("homeweather.set.debug", function(value) { debug = value; });
+
+agent.on("homeweather.set.dim.start", function(value) {
+    nightTime = value;
+    if (debug) server.log("Display off time set to " + value);
+});
+
+agent.on("homeweather.set.dim.end", function(value) {
+    dayTime = value;
+    if (debug) server.log("Display on time set to " + value);
+});
+
+agent.on("homeweather.set.offatnight", function(value) {
+    nightFlag = value;
+    if (debug) server.log("Night mode " + (value ? "enabled" : "disabled") + " on the device");
+});
+
+agent.on("homeweather.set.debug", function(value) {
+    debug = value;
+    server.log("Device debug messages " + (debug ? "enabled" : "disabled"));
+});
 
 // Request a weather forecast from the agent
 agent.send("homeweather.get.forecast", true);
