@@ -1,4 +1,4 @@
-# HomeWeather 2.3
+# HomeWeather 2.4
 
 This software powers a home weather station based on the Electric Imp Platform.
 
@@ -33,6 +33,13 @@ The Weather Station has its own, web-based control UI, accessed at the agent URL
 ![Weather Station UI](grab01.png)
 
 ## Release Notes
+
+### 2.4
+
+- Add light rain icon
+- Improve UI
+- Remove UI version number
+- Use generic boot message code
 
 ### 2.3
 
