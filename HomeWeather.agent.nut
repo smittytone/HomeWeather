@@ -29,7 +29,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
     <body>
         <div class='container' style='padding: 20px'>
             <div style='border: 2px solid white'>
-                <h2 class='text-center'>Home Weather Station Control <span></span><br>&nbsp;</h2>
+                <h2 class='text-center'>Home Weather Station Control<br>&nbsp;</h2>
                 <table width='100%%'>
                     <tr>
                         <td width='20%%'>&nbsp;</td>
@@ -70,7 +70,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                                 </div>
                                 <hr>
                                 <div class='advancedsettings'>
-                                    <p class='showhide' align='center'>Click for Advanced Settings</p>
+                                    <p class='showhide' align='center'>Show Advanced Settings</p>
                                     <div class='advanced' align='center'>
                                         <div class='debug-checkbox' style='color:white;font-family:Abel'>
                                             <small><input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode</small><br>&nbsp;
@@ -107,6 +107,8 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
         $('#debug').click(setDebug);
         $('.showhide').click(function(){
             $('.advanced').toggle();
+            var isVis = $('.advanced').is(':visible');
+            $('.showhide').text(isVis ? 'Hide Advanced Settings' : 'Show Advanced Settings');
         });
 
         function setDimTime(e){
@@ -143,7 +145,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             document.getElementById('dimmerstart').value = data.dimstart;
             document.getElementById('dimmerend').value = data.dimend;
 
-            $('.text-center span').text(data.vers);
+            // Set the debug mode advanced option
             document.getElementById('debug').checked = data.debug;
 
             // Clear the error readout
@@ -233,8 +235,6 @@ local savedData = null;
 
 local myLongitude = -0.147118;
 local myLatitude = 51.592907;
-local appVersion = "2.4";
-local appName = "HomeWeather";
 local debug = true;
 local syncFlag = false;
 local settings = {};
@@ -281,6 +281,11 @@ function forecastCallback(err, data) {
                     sendData.cast = "partly cloudy";
                 }
 
+                if (item.summary == "Drizzle" || item.summary == "Light Rain") {
+                    item.icon = "lightrain";
+                    sendData.cast = "drizzle";
+                }
+
                 local initial = sendData.cast.slice(0, 1);
                 sendData.cast = initial.toupper() + sendData.cast.slice(1);
 
@@ -314,8 +319,10 @@ function deviceReady(dummy) {
 
 function resetSettings() {
     // Reset the settings to the defaults
+    // First clear the saved data in case the settings keys have changed
     server.save({});
 
+    // Create a new settings table
     settings = {};
     settings.dimstart <- 22;
     settings.dimend <- 7;
@@ -323,6 +330,7 @@ function resetSettings() {
     settings.debug <- false;
     debug = false;
 
+    // Save the new table
     local result = server.save(settings);
     if (result != 0) server.error("Settings could not be saved");
 }
@@ -333,7 +341,7 @@ function resetSettings() {
 // forecaster = DarkSky("<YOUR_API_KEY>");
 // apiKey = "<YOUR_SELF-GENERATED_UUID_(OPTIONAL)>"
 
-// ...and comment out the following line
+// ...and comment out the following line if you are not using Squinter
 #import "~/Dropbox/Programming/Imp/Codes/homeweather.nut"
 
 // Set 'forecaster' for UK use
@@ -349,15 +357,15 @@ settings = server.load();
 
 if (settings.len() == 0) {
     // No settings saved so set the defaults
-    server.log("First run - setting defaults");
+    server.log("First run - applying default settings");
     resetSettings();
 }
 
-// Set up the API
+// Set up the UI API
 api = Rocky();
 
 api.get("/", function(context) {
-    // Root request: just return standard HTML string
+    // Root request: just return the UI HTML
     context.send(200, format(HTML_STRING, http.agenturl()));
 });
 
@@ -368,7 +376,6 @@ api.get("/dimmer", function(context) {
     data.dimstart <- settings.dimstart;
     data.dimend <- settings.dimend;
     data.debug <- settings.debug;
-    data.vers <- appVersion.slice(0, 3);
 
     if (savedData != null) {
         data.temp <- savedData.temp;
@@ -403,7 +410,7 @@ api.post("/dimmer", function(context) {
         state = data.enabled;
         settings.offatnight = state;
         device.send("homeweather.set.offatnight", state);
-        if (debug) server.log(state ? "Dimmer enabled" : "Dimmer disabled");
+        if (debug) server.log(state ? "Nighttime dimmer enabled" : "Nighttime dimmer disabled");
     }
 
     if (start == null && end == null && state == null) {
@@ -432,13 +439,13 @@ api.post("/dimmer", function(context) {
 
             settings.dimstart = start;
             settings.dimend = end;
-            if (debug) server.log("Setting dimmer start to " + start + ", end to " + end);
+            if (debug) server.log("Setting nighttime dimmer start to " + start + ", end to " + end);
         }
 
-        context.send(202, "Night dimming setting(s) applied");
+        context.send(202, "Nighttime dimming setting(s) applied");
 
         local result = server.save(settings);
-        if (result != 0) server.error("Settings could not be saved");
+        if (result != 0) server.error("Could not save settings (code: " + result + ")");
     }
 });
 
@@ -492,8 +499,6 @@ api.post("/reset", function(context) {
     context.send(200, (debug ? "Debug on" : "Debug off"));
 });
 
-if (debug) server.log("Starting \"" + appName + "\" build " + appVersion);
-
 // In five minutes' time, check if the device has not synced (as far as
 // the agent knows) but is connected, ie. we have probably experienced
 // an unexpected agent restart. If so, do a location lookup as if asked
@@ -502,7 +507,7 @@ agentRestartTimer = imp.wakeup(300, function() {
     agentRestartTimer = null;
     if (!syncFlag) {
         if (device.isconnected()) {
-            if (debug) server.log("Restarting forecasting due to agent restart");
+            if (debug) server.log("Recommencing forecasting due to agent restart");
             deviceReady(true);
         }
     }
