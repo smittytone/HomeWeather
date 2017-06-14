@@ -33,18 +33,14 @@ local savedForecast = null;
 local now = null;
 local hbTimer = null;
 local disTimer = null;
-
 local nightTime = 21;
 local dayTime = 6;
 local downtime = 0;
-
 local displayState = DISPLAY_ON;
-
 local nightFlag = true;
 local timeFlag = true;
 local disFlag = false;
 local debug = true;
-
 local iconset = {};
 
 // FUNCTIONS
@@ -310,7 +306,7 @@ function reconnect() {
     }
 }
 
-// Load in generic boot message code
+// Load in generic boot message code (comment out if you're not using Squinter)
 #include "../generic/bootmessage.nut"
 
 // START OF PROGRAM
@@ -321,12 +317,15 @@ server.onunexpecteddisconnect(disHandler);
 // Set up instanced classes
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
 
+// Set up the matrix display
 matrix = HT16K33Matrix(hardware.i2c89, 0x70, true);
 matrix.init(1, 3);
 
+// Set up the segment display
 segment = HT16K33Segment(hardware.i2c89, 0x72);
 segment.init(16, 1, false);
 
+// Set up the bar
 bar = HT16K33Bargraph(hardware.i2c89, 0x74, true);
 bar.init(1, false);
 
@@ -334,6 +333,7 @@ bar.init(1, false);
 iconset.clearday <- [0x89,0x42,0x18,0xBC,0x3D,0x18,0x42,0x91];
 iconset.clearnight <- [0x0,0x0,0x0,0x81,0xE7,0x7E,0x3C,0x18];
 iconset.rain <- [0x8C,0x5E,0x1E,0x5F,0x3F,0x9F,0x5E,0x0C];
+iconset.lightrain <- [0x8C,0x52,0x12,0x51,0x31,0x91,0x52,0xC];
 iconset.snow <- [0x14,0x49,0x2A,0x1C,0x1C,0x2A,0x49,0x14];
 iconset.sleet <- [0x4C,0xBE,0x5E,0xBF,0x5F,0xBF,0x5E,0xAC];
 iconset.wind <- [0x28,0x28,0x28,0x28,0x28,0xAA,0xAA,0x44];
