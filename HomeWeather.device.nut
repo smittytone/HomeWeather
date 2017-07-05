@@ -21,7 +21,8 @@ const LED_AMBER = 2;
 const LED_GREEN = 3;
 const DISPLAY_ON = 0xFF;
 const DISPLAY_OFF = 0x00;
-const RECONNECT_TIME = 600.0;
+const RECONNECT_TIME = 30;
+const DISC_TIMEOUT = 600;
 const SWITCH_TIME = 2;
 
 // GLOBALS
@@ -32,14 +33,14 @@ local bar = null;
 local savedForecast = null;
 local now = null;
 local hbTimer = null;
-local disTimer = null;
+local reconnectTimer = null;
 local nightTime = 21;
 local dayTime = 6;
 local downtime = 0;
 local displayState = DISPLAY_ON;
 local nightFlag = true;
 local timeFlag = true;
-local disFlag = false;
+local discFlag = false;
 local debug = true;
 local iconset = {};
 
@@ -125,7 +126,7 @@ function displayDisconnected() {
 
 function displayTemp(data) {
     // Disconnected? Indicate on the display and bail
-    if (disFlag) {
+    if (discFlag) {
         displayDisconnected();
         return;
     }
@@ -281,28 +282,42 @@ function displayIcon(data) {
 
 // OFFLINE OPERATION FUNCTIONS
 
-function disHandler(reason) {
+function discHandler(reason) {
     if (reason != SERVER_CONNECTED) {
         // Tell imp to wake in 'RECONNECT_TIME' minutes and attempt to reconnect
-        disFlag = true;
-        downtime = time();
-        disTimer = imp.wakeup(RECONNECT_TIME, reconnect);
+        if (!discFlag) {
+            discFlag = true;
+            downtime = time();
+        }
+
+        // Set an attempt to reconnect in 'DISC_TIMEOUT' seconds if we haven't done so already
+        if (reconnectTimer == null) reconnectTimer = imp.wakeup(DISC_TIMEOUT, reconnect);
     } else {
         // Back online so request a weather forecast from the agent
-        disFlag = false;
-        downtime = time() - downtime;
-        if (debug) server.log("Reconnected after " + downtime + " seconds");
-        agent.send("homeweather.get.forecast", true);
+        if (discFlag) {
+            discFlag = false;
+            downtime = time() - downtime;
+            if (debug) server.log("Reconnected after " + downtime + " seconds");
+            downtime = 0;
+            agent.send("homeweather.get.forecast", true);
+        }
+
+        // Clear the reconnect timer
+        if (reconnectTimer != null) {
+            imp.cancelwakeup(reconnectTimer);
+            reconnectTimer = null;
+        }
     }
 }
 
 function reconnect() {
-    disTimer = null;
-
+    // Called when necessary in order to attempt to reconnect to the server
     if (server.isconnected()) {
-        disHandler(SERVER_CONNECTED);
+       // Is the clock already connected? If so trigger the 'connected' flow via 'discHandler()'
+       discHandler(SERVER_CONNECTED);
     } else {
-        server.connect(disHandler, 30);
+        // The clock is still disconnected, so attempt to connect
+        server.connect(discHandler, RECONNECT_TIME);
     }
 }
 
@@ -312,7 +327,7 @@ function reconnect() {
 // START OF PROGRAM
 
 // Register for unexpected disconnections
-server.onunexpecteddisconnect(disHandler);
+server.onunexpecteddisconnect(discHandler);
 
 // Set up instanced classes
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
