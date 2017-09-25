@@ -27,14 +27,14 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             .modal {display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%%; height: 100%%; overflow: auto;
                 background-color: rgb(0,0,0);
                 background-color: rgba(0,0,0,0.4)}
-            .modal-content {background-color: rgba(134,231,70,0.7);
+            .modal-content-ok {background-color: rgba(134,231,70,0.7);
                 margin: 10%% auto; padding: 15px;
                 border: 2px solid #86D546; width: 50%%}
         </style>
     </head>
     <body>
         <div id='confirmModal' class='modal'>
-            <div class='modal-content'>
+            <div class='modal-content-ok'>
                 <h3 align='center' style='color: black; font-family: Abel'>Night mode times updated</h3>
             </div>
         </div>
