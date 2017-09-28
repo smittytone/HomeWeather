@@ -95,7 +95,7 @@ function showDisplay(hour, minute) {
     local flag = true;
 
     // If we have auto-dimming set, we need only check whether we need to turn the display off
-    if (nightFlag && (hour < dayTime || (hour == nightTime && minute > 0) || hour > nightTime)) flag = false;
+    if (nightFlag && (hour < dayTime || hour >= nightTime)) flag = false;
 
     return flag;
 }
