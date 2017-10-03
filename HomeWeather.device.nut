@@ -50,6 +50,7 @@ function heartbeat() {
     // This function runs every 'SWITCH_TIME' seconds to manage the displays
     hbTimer = imp.wakeup(SWITCH_TIME, heartbeat);
 
+    // Get the current time from the RTC and adjust for BST
     now = date();
     if (utilities.bstCheck()) now.hour++;
     if (now.hour > 23) now.hour = 0;
@@ -92,12 +93,9 @@ function heartbeat() {
 
 function showDisplay(hour, minute) {
     // Returns true if the display should be on, false otherwise - default is true / on
-    local flag = true;
-
     // If we have auto-dimming set, we need only check whether we need to turn the display off
-    if (nightFlag && (hour < dayTime || hour >= nightTime)) flag = false;
-
-    return flag;
+    if (nightFlag && (hour < dayTime || hour >= nightTime)) return false;
+    return true;
 }
 
 function autoBrightness() {
@@ -392,7 +390,7 @@ agent.on("homeweather.set.settings", function(settings) {
     if (debug) {
         server.log("Applying settings received from agent");
         if (nightFlag) {
-            server.log(format("Display will dim at %iPM and come on at %iAM", nightTime, dayTime));
+            server.log(format("Display will dim at %ipm and come on at %iam", nightTime, dayTime));
         } else {
             server.log("Overnight display dimming disabled");
         }
