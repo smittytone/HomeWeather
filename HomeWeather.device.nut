@@ -34,8 +34,8 @@ local savedForecast = null;
 local now = null;
 local hbTimer = null;
 local reconnectTimer = null;
-local nightTime = 21;
-local dayTime = 6;
+local nightTime = 22;
+local dayTime = 7;
 local downtime = 0;
 local displayState = DISPLAY_ON;
 local nightFlag = true;
@@ -299,6 +299,8 @@ function discHandler(reason) {
             downtime = time() - downtime;
             if (debug) server.log("Reconnected after " + downtime + " seconds");
             downtime = 0;
+
+            // Get a forecast - this will also update the settings
             agent.send("homeweather.get.forecast", true);
         }
 
@@ -382,7 +384,22 @@ agent.on("homeweather.set.debug", function(value) {
     server.log("Device debug messages " + (debug ? "enabled" : "disabled"));
 });
 
-// Request a weather forecast from the agent
+agent.on("homeweather.set.settings", function(settings) {
+    nightTime = settings.dimstart;
+    dayTime = settings.dimend;
+    nightFlag = settings.offatnight;
+
+    if (debug) {
+        server.log("Applying settings received from agent");
+        if (nightFlag) {
+            server.log(format("Display will dim at %iPM and come on at %iAM", nightTime, dayTime));
+        } else {
+            server.log("Overnight display dimming disabled");
+        }
+    }
+});
+
+// Request a weather forecast from the agent - this will also update the settings
 agent.send("homeweather.get.forecast", true);
 
 // Start the app loop

@@ -263,7 +263,7 @@ local savedData = null;
 
 local myLongitude = -0.147118;
 local myLatitude = 51.592907;
-local debug = true;
+local debug = false;
 local syncFlag = false;
 local settings = {};
 
@@ -337,11 +337,11 @@ function forecastCallback(err, data) {
 
 function deviceReady(dummy) {
     // This is called by the device via agent.send() when it starts
-    // or by the agent itself after an agent migration
+    // or by the agent itself after an agent migration/restart
     if (agentRestartTimer) imp.cancelwakeup(agentRestartTimer);
     agentRestartTimer = null;
     syncFlag = true;
-    device.send("homeweather.set.debug", debug);
+    device.send("homeweather.set.settings", settings);
     getForecast();
 }
 
@@ -387,6 +387,8 @@ if (settings.len() == 0) {
     // No settings saved so set the defaults
     server.log("First run - applying default settings");
     resetSettings();
+} else {
+    if ("debug" in settings) debug = settings.debug;
 }
 
 // Set up the UI API
