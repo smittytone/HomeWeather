@@ -30,6 +30,17 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
             .modal-content-ok {background-color: rgba(134,231,70,0.7);
                 margin: 10%% auto; padding: 15px;
                 border: 2px solid #86D546; width: 50%%}
+            .tabborder {width: 20%%}
+            .tabcontent {width: 60%%}
+            .uicontent {border: 2px solid white}
+            .container {padding: 20px}
+
+            @media only screen and (max-width: 640px) {
+                .tabborder {width: 5%%}
+                .tabcontent {width: 90%%}
+                .container {padding: 5px}
+                .uicontent {border: 0px}
+            }
         </style>
     </head>
     <body>
@@ -38,13 +49,13 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                 <h3 align='center' style='color: black; font-family: Abel'>Night mode times updated</h3>
             </div>
         </div>
-        <div class='container' style='padding: 20px'>
-            <div style='border: 2px solid white'>
+        <div class='container'>
+            <div class='uicontent'>
                 <h2 class='text-center'>Home Weather Station Control<br>&nbsp;</h2>
                 <table width='100%%'>
                     <tr>
-                        <td width='20%%'>&nbsp;</td>
-                        <td width='60%%'>
+                        <td class='tabborder'>&nbsp;</td>
+                        <td class='tabcontent'>
                             <div class='current-status'>
                                 <h4 class='temp-status' align='center'>Current Temperature: <span></span>&deg;C&nbsp;</h4>
                                 <h4 class='outlook-status' align='center'>Weather Outlook: <span></span></h4>
@@ -60,8 +71,8 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                                             <td align='center' colspan='2'><h4 class='dimstatus'><span>Night Mode Enabled</span></h4><br></td>
                                         </tr>
                                         <tr>
-                                            <td align='right' width='58%%'>Night Mode Start Time (hour)&nbsp;</td>
-                                            <td align='left' width='42%%'>&nbsp;<input type='text' id='dimmerstart' min='0' max='22' style='width:40px;color:CornflowerBlue'></input></td>
+                                            <td align='right' width='60%%'>Night Mode Start Time (hour)&nbsp;</td>
+                                            <td align='left' width='40%%'>&nbsp;<input type='text' id='dimmerstart' min='0' max='22' style='width:40px;color:CornflowerBlue'></input></td>
                                         </tr>
                                         <tr>
                                             <td align='right'>Night Mode End Time (hour)&nbsp;</td>
@@ -95,7 +106,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                             <hr>
                             <p class='text-center' style='font-family:Oswald'><small>Home Weather Station Control copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;<br><a href='https://github.com/smittytone/HomeWeather'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32'></a></p>
                         </td>
-                        <td width='20%%'>&nbsp;</td>
+                        <td class='tabborder'>&nbsp;</td>
                     </tr>
                 </table>
             </div>
