@@ -1,16 +1,16 @@
 // Home Weather - wall-mount weather Station
 // Copyright Tony Smith, 2015-2017
 
-#require "utilities.nut:1.0.0"
+// IMPORTS
 
-#import "../HT16K33Segment/HT16K33Segment.class.nut"
-
+#import "../generic/utilities.nut"
+#import "../ht16k33segment/ht16k33segment.class.nut"
 #import "../ht16k33matrix/ht16k33matrix.class.nut"
-
 #import "../ht16k33bargraph/ht16k33bargraph.class.nut"
 
-// SET DISCONNECTION POLICY
+// EARLY-RUN CODE
 
+// Set the disconnection policy
 server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
 
 // CONSTANTS
@@ -34,8 +34,8 @@ local savedForecast = null;
 local now = null;
 local hbTimer = null;
 local reconnectTimer = null;
-local nightTime = 22;
-local dayTime = 7;
+local nightTime = 21;
+local dayTime = 6;
 local downtime = 0;
 local displayState = DISPLAY_ON;
 local nightFlag = true;
@@ -50,7 +50,6 @@ function heartbeat() {
     // This function runs every 'SWITCH_TIME' seconds to manage the displays
     hbTimer = imp.wakeup(SWITCH_TIME, heartbeat);
 
-    // Get the current time from the RTC and adjust for BST
     now = date();
     if (utilities.bstCheck()) now.hour++;
     if (now.hour > 23) now.hour = 0;
@@ -93,6 +92,8 @@ function heartbeat() {
 
 function showDisplay(hour, minute) {
     // Returns true if the display should be on, false otherwise - default is true / on
+    local flag = true;
+
     // If we have auto-dimming set, we need only check whether we need to turn the display off
     if (nightFlag && (hour < dayTime || hour >= nightTime)) return false;
     return true;
@@ -321,10 +322,10 @@ function reconnect() {
     }
 }
 
+// START OF PROGRAM
+
 // Load in generic boot message code (comment out if you're not using Squinter)
 #include "../generic/bootmessage.nut"
-
-// START OF PROGRAM
 
 // Register for unexpected disconnections
 server.onunexpecteddisconnect(discHandler);
