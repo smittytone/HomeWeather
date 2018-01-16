@@ -540,6 +540,14 @@ api.post("/reset", function(context) {
     context.send(200, (debug ? "Debug on" : "Debug off"));
 });
 
+// GET at /info returns device capabilities (EXPERIMENTAL)
+api.get("/info", function(context) {
+    local info = {};
+    info.app <- "8B6B3A11-00B4-4304-BE27-ABD11DB1B774";
+    info.watchsupported <- "true";
+    context.send(200, http.jsonencode(info));
+});
+
 // In five minutes' time, check if the device has not synced (as far as
 // the agent knows) but is connected, ie. we have probably experienced
 // an unexpected agent restart. If so, do a location lookup as if asked
