@@ -1,32 +1,28 @@
 // Home Weather - wall-mount weather Station
-// Copyright Tony Smith, 2015-2017
+// Copyright Tony Smith, 2015-2018
 
 // IMPORTS
-
 #import "../generic/utilities.nut"
 #import "../ht16k33segment/ht16k33segment.class.nut"
 #import "../ht16k33matrix/ht16k33matrix.class.nut"
 #import "../ht16k33bargraph/ht16k33bargraph.class.nut"
 
 // EARLY-RUN CODE
-
 // Set the disconnection policy
 server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
 
 // CONSTANTS
-
 const LED_OFF = 0;
 const LED_RED = 1;
 const LED_AMBER = 2;
 const LED_GREEN = 3;
 const DISPLAY_ON = 0xFF;
 const DISPLAY_OFF = 0x00;
-const RECONNECT_TIME = 30;
-const DISC_TIMEOUT = 600;
+const RECONNECT_TIMEOUT = 30;
+const DISCONNECT_TIMEOUT = 600;
 const SWITCH_TIME = 2;
 
 // GLOBALS
-
 local matrix = null;
 local segment = null;
 local bar = null;
@@ -36,18 +32,17 @@ local hbTimer = null;
 local reconnectTimer = null;
 local nightTime = 21;
 local dayTime = 6;
-local downtime = 0;
 local displayState = DISPLAY_ON;
 local nightFlag = true;
 local timeFlag = true;
 local discFlag = false;
+local discMessage = "";
 local debug = true;
 local iconset = {};
 
 // FUNCTIONS
-
 function heartbeat() {
-    // This function runs every 'SWITCH_TIME' seconds to manage the displays
+    // This function runs every 'SWITCH_TIME' seconds to manage the segment LED
     hbTimer = imp.wakeup(SWITCH_TIME, heartbeat);
 
     now = date();
@@ -92,8 +87,6 @@ function heartbeat() {
 
 function showDisplay(hour, minute) {
     // Returns true if the display should be on, false otherwise - default is true / on
-    local flag = true;
-
     // If we have auto-dimming set, we need only check whether we need to turn the display off
     if (nightFlag && (hour < dayTime || hour >= nightTime)) return false;
     return true;
@@ -280,28 +273,33 @@ function displayIcon(data) {
 }
 
 // OFFLINE OPERATION FUNCTIONS
-
 function discHandler(reason) {
+    // Called if the server connection is broken or re-established
+    // Sets 'discFlag' to true if there is no connection
     if (reason != SERVER_CONNECTED) {
-        // Tell imp to wake in 'RECONNECT_TIME' minutes and attempt to reconnect
+        // We weren't previously disconnected, so mark us as disconnected now
         if (!discFlag) {
             discFlag = true;
-            downtime = time();
+            local now = date();
+            discMessage = "Went offline at " + now.hour + ":" + now.min + ":" + now.sec + ". Reason: " + reason;
         }
 
-        // Set an attempt to reconnect in 'DISC_TIMEOUT' seconds if we haven't done so already
-        if (reconnectTimer == null) reconnectTimer = imp.wakeup(DISC_TIMEOUT, reconnect);
+        // Schedule an attempt to re-connect in DISCONNECT_TIMEOUT seconds
+        if (reconnectTimer == null) reconnectTimer = imp.wakeup(DISCONNECT_TIMEOUT, reconnect);
     } else {
         // Back online so request a weather forecast from the agent
         if (discFlag) {
-            discFlag = false;
-            downtime = time() - downtime;
-            if (debug) server.log("Reconnected after " + downtime + " seconds");
-            downtime = 0;
+            if (debug) {
+                server.log(disMessage);
+                local now = date();
+                server.log("Now back online at " + now.hour + ":" + now.min + ":" + now.sec);
+            }
 
             // Get a forecast - this will also update the settings
             agent.send("homeweather.get.forecast", true);
         }
+
+        discFlag = false;
 
         // Clear the reconnect timer
         if (reconnectTimer != null) {
@@ -314,26 +312,23 @@ function discHandler(reason) {
 function reconnect() {
     // Called when necessary in order to attempt to reconnect to the server
     if (server.isconnected()) {
-       // Is the clock already connected? If so trigger the 'connected' flow via 'discHandler()'
+       // Is the unit already connected for some reason? If so trigger the 'connected' flow via 'discHandler()'
        discHandler(SERVER_CONNECTED);
     } else {
         // The clock is still disconnected, so attempt to connect
-        server.connect(discHandler, RECONNECT_TIME);
+        server.connect(discHandler, RECONNECT_TIMEOUT);
     }
 }
 
 // START OF PROGRAM
-
 // Load in generic boot message code (comment out if you're not using Squinter)
 #include "../generic/bootmessage.nut"
 
 // Register for unexpected disconnections
 server.onunexpecteddisconnect(discHandler);
 
-// Set up instanced classes
-hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
-
 // Set up the matrix display
+hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
 matrix = HT16K33Matrix(hardware.i2c89, 0x70, true);
 matrix.init(1, 3);
 
