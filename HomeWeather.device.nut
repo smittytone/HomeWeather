@@ -290,7 +290,7 @@ function discHandler(reason) {
         // Back online so request a weather forecast from the agent
         if (discFlag) {
             if (debug) {
-                server.log(disMessage);
+                server.log(discMessage);
                 local now = date();
                 server.log("Now back online at " + now.hour + ":" + now.min + ":" + now.sec);
             }
