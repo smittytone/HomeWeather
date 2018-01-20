@@ -564,6 +564,11 @@ api.get("/info", function(context) {
     context.send(200, http.jsonencode(info));
 });
 
+api.get("/state", function(context) {
+    local data = device.isconnected() ? "1" : "0"
+    context.send(200, data);
+});
+
 // In 'RESTART_TIMEOUT' seconds' time, check if the device has not synced (as far as
 // the agent knows) but is connected, ie. we have probably experienced an unexpected
 // agent restart. If so, do a location lookup as if asked by a newly starting device
