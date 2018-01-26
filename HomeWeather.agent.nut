@@ -463,11 +463,24 @@ api.post("/dimmer", function(context) {
 
     if ("dimstart" in data) start = data.dimstart.tointeger();
     if ("dimend" in data) end = data.dimend.tointeger();
+
     if ("enabled" in data) {
+        // Activate or deactivate the nighttime dimmer
         state = data.enabled;
         settings.offatnight = state;
         device.send("homeweather.set.offatnight", state);
         applog(state ? "Nighttime dimmer enabled" : "Nighttime dimmer disabled");
+    }
+
+    if ("advance" in data) {
+        // Advance is only relevant if we are using the dimmer as otherwise
+        // the LEDs are always turned on
+        if (settings.offatnight) {
+            device.send("homeweather.set.advance", true);
+            applog("Timer advanced");
+            context.send(200, "Timer advanced");
+            return;
+        }
     }
 
     if (start == null && end == null && state == null) {
@@ -491,9 +504,11 @@ api.post("/dimmer", function(context) {
                 }
             }
 
+            // Send the dimmer timer details to the device...
             device.send("homeweather.set.dim.start", start);
             device.send("homeweather.set.dim.end", end);
 
+            // ... and record them here
             settings.dimstart = start;
             settings.dimend = end;
             applog("Setting nighttime dimmer start to " + start + ", end to " + end);

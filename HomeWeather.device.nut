@@ -8,7 +8,7 @@
 #import "../ht16k33bargraph/ht16k33bargraph.class.nut"
 
 // EARLY-RUN CODE
-// Set the disconnection policy
+// Set the imp disconnection policy
 server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
 
 // CONSTANTS
@@ -34,6 +34,7 @@ local nightTime = 21;
 local dayTime = 6;
 local displayState = DISPLAY_ON;
 local nightFlag = true;
+local advanceFlag = false;
 local timeFlag = true;
 local discFlag = false;
 local discMessage = "";
@@ -88,8 +89,9 @@ function heartbeat() {
 function showDisplay(hour, minute) {
     // Returns true if the display should be on, false otherwise - default is true / on
     // If we have auto-dimming set, we need only check whether we need to turn the display off
-    if (nightFlag && (hour < dayTime || hour >= nightTime)) return false;
-    return true;
+    local returnValue = true;
+    if (nightFlag && (hour < dayTime || hour >= nightTime)) returnValue = false;
+    return (advanceFlag ? !returnValue : returnValue);
 }
 
 function autoBrightness() {
@@ -371,6 +373,14 @@ agent.on("homeweather.set.dim.end", function(value) {
 agent.on("homeweather.set.offatnight", function(value) {
     nightFlag = value;
     if (debug) server.log("Night mode " + (value ? "enabled" : "disabled") + " on the device");
+});
+
+agent.on("homeweather.set.advance", function(value) {
+    // Hitting 'Advance' takes the timer to the next trigger point.
+    // If it's a second advance, that's the equivalent of 'no advance', so
+    // just flip the value of 'advanceFlag'
+    // NOTE This will not be sent by the agent if 'nightFlag' is false
+    advanceFlag = !advanceFlag;
 });
 
 agent.on("homeweather.set.debug", function(value) {
