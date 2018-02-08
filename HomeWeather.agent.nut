@@ -269,7 +269,7 @@ local request = null;
 local forecaster = null;
 local nextForecastTimer = null;
 local agentRestartTimer = null;
-local apiKey = null;
+// local apiKey = null;
 local api = null;
 local savedData = null;
 
@@ -392,12 +392,11 @@ function apperror(message) {
 
 // PROGRAM START
 
-// You will need to uncomment the following lines...
-// forecaster = DarkSky("<YOUR_API_KEY>");
-// apiKey = "<YOUR_SELF-GENERATED_UUID_(OPTIONAL)>"
-
-// ...and comment out the following line if you are not using Squinter
+// If you are NOT using Squinter or a similar tool, comment out the following line...
 #import "~/Dropbox/Programming/Imp/Codes/homeweather.nut"
+// ...and uncomment and fill in these line:
+// forecaster = DarkSky("YOUR_API_KEY");
+// const APP_CODE = "YOUR_APP_UUID";
 
 // Set 'forecaster' for UK use
 forecaster.setUnits("uk");
@@ -571,15 +570,15 @@ api.post("/reset", function(context) {
     context.send(200, (debug ? "Debug on" : "Debug off"));
 });
 
-// GET at /info returns device capabilities (EXPERIMENTAL)
-api.get("/info", function(context) {
-    local info = {};
-    info.app <- "8B6B3A11-00B4-4304-BE27-ABD11DB1B774";
-    info.watchsupported <- "true";
+// GET at /controller/info returns app UUID
+api.get("/controller/info", function(context) {
+    local info = { "appcode": APP_CODE,
+                   "watchsupported": "true" };
     context.send(200, http.jsonencode(info));
 });
 
-api.get("/state", function(context) {
+// GET at /controller/state returns app UUID
+api.get("/controller/state", function(context) {
     local data = device.isconnected() ? "1" : "0"
     context.send(200, data);
 });
