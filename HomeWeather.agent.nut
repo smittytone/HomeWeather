@@ -1,6 +1,7 @@
 // Home Weather - wall-mount weather Station
-// Copyright Tony Smith, 2015-2017
+// Copyright Tony Smith, 2015-2018
 
+// IMPORTS
 #require "DarkSky.class.nut:1.0.1"
 #require "Rocky.class.nut:2.0.0"
 
@@ -50,6 +51,11 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                 <h3 align='center' style='color: black; font-family: Abel'>Night mode times updated</h3>
             </div>
         </div>
+        <div id='advanceModal' class='modal'>
+            <div class='modal-content-ok'>
+                <h3 align='center' style='color: black; font-family: Abel'>Clock advanced</h3>
+            </div>
+        </div>
         <div class='container'>
             <div class='uicontent'>
                 <h2 class='text-center'>Home Weather Station Control<br>&nbsp;</h2>
@@ -72,21 +78,24 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                                             <td align='center' colspan='2'><h4 class='dimstatus'><span>Night Mode Enabled</span></h4><br></td>
                                         </tr>
                                         <tr>
-                                            <td align='right' width='60%%'>Night Mode Start Time (hour)&nbsp;</td>
-                                            <td align='left' width='40%%'>&nbsp;<input type='text' id='dimmerstart' min='0' max='22' style='width:40px;color:CornflowerBlue'></input></td>
+                                            <td align='right' width=59%%'>Night Mode Start Time (hour)&nbsp;</td>
+                                            <td align='left' width='41%%'>&nbsp;<input type='text' id='dimmerstart' min='0' max='22' style='width:40px;color:CornflowerBlue'></input></td>
                                         </tr>
                                         <tr>
                                             <td align='right'>Night Mode End Time (hour)&nbsp;</td>
                                             <td align='left'>&nbsp;<input type='text' id='dimmerend' min='1' max='23' style='width:40px;color:CornflowerBlue'></input></td>
                                         </tr>
                                         <tr>
-                                            <td align='center' colspan='2'><small>Set the on and off times in the 24-hour clock format</small></td>
+                                            <td align='center' colspan='2'><small>Set the on and off times in the 24-hour clock format<br>&nbsp;</small></td>
                                         </tr>
                                     </table>
                                     <p>&nbsp;</p>
                                 </div>
                                 <div class='update-button' style='color:black;font-family:Abel'>
                                     <button type='submit' id='dimmer-button' style='height:32px;width:200px'>Set Night Mode Times</button><br>&nbsp;
+                                </div>
+                                <div class='advance-button' style='color:black;font-family:Abel'>
+                                    <button type='submit' id='dimmer-advance' style='height:32px;width:200px'>Advance Clock</button><br>&nbsp;
                                 </div>
                                 <div class='enable-button' style='color:black;font-family:Abel'>
                                     <button type='submit' id='dimmer-action' style='height:32px;width:200px'>Disable Night Mode</button>
@@ -105,7 +114,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                                 </div>
                             </div>
                             <hr>
-                            <p class='text-center' style='font-family:Oswald'><small>Home Weather Station Control copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;<br><a href='https://github.com/smittytone/HomeWeather'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32'></a></p>
+                            <p class='text-center' style='font-family:Oswald'><small>Home Weather Station Control copyright &copy; Tony Smith, 2014-18</small><br>&nbsp;<br><a href='https://github.com/smittytone/HomeWeather'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32'></a></p>
                         </td>
                         <td class='tabborder'>&nbsp;</td>
                     </tr>
@@ -127,6 +136,7 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
         // Set object click actions
         $('.update-button button').click(setDimTime);
         $('.enable-button button').click(setDimEnable);
+        $('.advance-button button').click(doAdvance);
         $('.reset-button button').click(doReset);
         $('#debug').click(setDebug);
         $('.showhide').click(function(){
@@ -246,6 +256,34 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
                 url : agenturl + '/debug',
                 type: 'POST',
                 data: JSON.stringify({ 'debug' : document.getElementById('debug').checked })
+            });
+        }
+
+        function doAdvance() {
+            // Tell the device to advance its clock
+            $.ajax({
+                url : agenturl + '/dimmer',
+                type: 'POST',
+                data: JSON.stringify({ 'advance' : true }),
+                success: function(response) {
+                    clearTimeout(timer);
+
+                    var modal = document.getElementById('advanceModal');
+                    modal.style.display = 'block';
+
+                    timer = setTimeout(function() {
+                        modal.style.display = 'none';
+                    }, 6000);
+
+                    window.onclick = function(event) {
+                        if (event.target == modal) {
+                            clearTimeout(timer);
+                            modal.style.display = 'none';
+                        }
+                    };
+
+                    getState(updateReadout);
+                }
             });
         }
 
