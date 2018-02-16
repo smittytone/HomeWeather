@@ -305,8 +305,16 @@ function discHandler(reason) {
         }
 
         // Schedule an attempt to re-connect in DISCONNECT_TIMEOUT seconds
-        if (reconnectTimer == null) reconnectTimer = imp.wakeup(DISCONNECT_TIMEOUT, reconnect);
+        if (reconnectTimer == null) reconnectTimer = imp.wakeup(DISCONNECT_TIMEOUT, function() {
+            server.connect(discHandler, RECONNECT_TIMEOUT)
+        });
     } else {
+        // Clear the reconnect timer if in play
+        if (reconnectTimer != null) {
+            imp.cancelwakeup(reconnectTimer);
+            reconnectTimer = null;
+        }
+
         // Back online so request a weather forecast from the agent
         if (discFlag) {
             if (debug) {
@@ -320,23 +328,6 @@ function discHandler(reason) {
         }
 
         discFlag = false;
-
-        // Clear the reconnect timer
-        if (reconnectTimer != null) {
-            imp.cancelwakeup(reconnectTimer);
-            reconnectTimer = null;
-        }
-    }
-}
-
-function reconnect() {
-    // Called when necessary in order to attempt to reconnect to the server
-    if (server.isconnected()) {
-       // Is the unit already connected for some reason? If so trigger the 'connected' flow via 'discHandler()'
-       discHandler(SERVER_CONNECTED);
-    } else {
-        // The clock is still disconnected, so attempt to connect
-        server.connect(discHandler, RECONNECT_TIMEOUT);
     }
 }
 
