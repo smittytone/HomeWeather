@@ -30,9 +30,16 @@ If you are using the macOS tool Squinter (download [here](https://smittytone.git
 
 The Weather Station has its own, web-based control UI, accessed at the agent URL.
 
-![Weather Station UI](images/grab01.png)
+<p align="center"><img src="images/grab01.png" width="800"></p>
 
 ## Release Notes ##
+
+### 2.6 ###
+
+**In Developement**
+
+- Add ‘Advance Clock’ function to the night mode dimmer
+- Improve disconnection handling
 
 ### 2.5 ###
 
