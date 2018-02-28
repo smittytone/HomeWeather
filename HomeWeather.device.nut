@@ -41,13 +41,13 @@ local discFlag = false;
 local discMessage = "";
 local debug = true;
 
-// FUNCTIONS
+// DISPLAY FUNCTIONS
 function heartbeat() {
     // This function runs every 'SWITCH_TIME' seconds to manage the segment LED
     hbTimer = imp.wakeup(SWITCH_TIME, heartbeat);
 
     now = date();
-    if (utilities.bstCheck()) now.hour++;
+    if (Utilities.bstCheck()) now.hour++;
     if (now.hour > 23) now.hour = 0;
 
     if (showDisplay(now.hour, now.min)) {
@@ -61,11 +61,7 @@ function heartbeat() {
             if (debug) server.log("Brightening display at " + now.hour + (now.hour < 12 ? "am" : "pm"));
         }
 
-        // Every 'SWITCH_TIME' seconds we display the temperature,
-        // alternating with the time
-        // autoBrightness();
-        segment.clearDisplay();
-
+        // Every 'SWITCH_TIME' seconds we display the temperature, alternating with the time
         if (!timeFlag) {
             displayTemp(savedForecast);
         } else {
@@ -110,16 +106,10 @@ function autoBrightness() {
     if (debug) server.log("Brightness set to " + bright + "(light level: " + l + ")");
 }
 
-function displayDisconnected() {
-    // Put 'dISC' onto the segment display to indicate status
-    segment.writeChar(0, 0x5E, false);
-    segment.writeChar(1, 0x06, false);
-    segment.writeChar(3, 0x6D, false);
-    segment.writeChar(4, 0x39, false);
-    segment.updateDisplay();
-}
-
 function displayTemp(data) {
+    // Clear the display
+    segment.clearDisplay();
+
     // Disconnected? Indicate on the display and bail
     if (discFlag) {
         displayDisconnected();
@@ -200,6 +190,9 @@ function displayTemp(data) {
 }
 
 function displayTime() {
+    // Clear the display
+    segment.clearDisplay();
+
     local h = now.hour;
     local m = 0;
 
@@ -219,7 +212,7 @@ function displayTime() {
 
         while (h >= 0) {
             h = h - 10;
-            ++m;
+            m++;
         }
 
         segment.writeNumber(4, (now.min - (10 * (m - 1))), false);
@@ -229,21 +222,20 @@ function displayTime() {
         segment.writeNumber(3, 0, false);
     }
 
+    // Add the colon and update the display
     segment.setColon(true).updateDisplay();
 }
 
 function displayWeather(data) {
     // This is intended only to be called in response to data from the agent
     // It manages the matrix LED and the LED bar graph
-
     if (data == null) {
         // No passed in weather data? Use the last forecast
         if (savedForecast == null) return;
         data = saveForecast;
     }
 
-    // Save the current forecast for next time, in case the function is NOT
-    // triggered by the agent
+    // Save the current forecast for next time, in case the function is NOT triggered
     savedForecast = data;
 
     if (showDisplay(now.hour, now.min)) {
@@ -262,13 +254,16 @@ function displayRain(data) {
 function displayIcon(data) {
     // Display the weather type on the matrix
     // Should not be called if the display should be off
+    // First display the forecast text
     matrix.displayLine(data.cast);
 
     local icon = null;
 	try {
-    	icon = clone(iconset[data.icon]);
+    	// Point 'icon' at the indicated icon table entry
+    	icon = iconset[data.icon];
     } catch (error) {
-    	icon = clone(iconset[none]);
+    	// 'data.icon' doesn't match a known icon table entry
+    	icon = iconset[none];
     }
 
     // Display the weather icon
@@ -292,6 +287,16 @@ function setIcons() {
     iconset.tornado <- [0x0,0x2,0x36,0x7D,0xDD,0x8D,0x6,0x2];
     iconset.none <- [0x0,0x0,0x2,0xB9,0x9,0x6,0x0,0x0];
 }
+
+function displayDisconnected() {
+    // Put 'dISC' onto the segment display to indicate status
+    segment.writeChar(0, 0x5E, false);
+    segment.writeChar(1, 0x06, false);
+    segment.writeChar(3, 0x6D, false);
+    segment.writeChar(4, 0x39, false);
+    segment.updateDisplay();
+}
+
 // OFFLINE OPERATION FUNCTIONS
 function discHandler(reason) {
     // Called if the server connection is broken or re-established
@@ -306,7 +311,7 @@ function discHandler(reason) {
 
         // Schedule an attempt to re-connect in DISCONNECT_TIMEOUT seconds
         if (reconnectTimer == null) reconnectTimer = imp.wakeup(DISCONNECT_TIMEOUT, function() {
-            server.connect(discHandler, RECONNECT_TIMEOUT)
+            server.connect(discHandler, RECONNECT_TIMEOUT);
         });
     } else {
         // Clear the reconnect timer if in play
@@ -320,7 +325,7 @@ function discHandler(reason) {
             if (debug) {
                 server.log(discMessage);
                 local now = date();
-                server.log("Now back online at " + now.hour + ":" + now.min + ":" + now.sec);
+                server.log("Back online at " + now.hour + ":" + now.min + ":" + now.sec);
             }
 
             // Get a forecast - this will also update the settings
@@ -392,11 +397,9 @@ agent.on("homeweather.set.settings", function(settings) {
 
     if (debug) {
         server.log("Applying settings received from agent");
-        if (nightFlag) {
-            server.log(format("Display will dim at %ipm and come on at %iam", nightTime, dayTime));
-        } else {
-            server.log("Overnight display dimming disabled");
-        }
+        server.log(nightFlag
+            ? format("Display will dim at %ipm and come on at %iam", nightTime, dayTime)
+            : "Overnight display dimming disabled");
     }
 });
 
