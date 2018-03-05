@@ -19,7 +19,7 @@ const LED_GREEN = 3;
 const DISPLAY_ON = 0xFF;
 const DISPLAY_OFF = 0x00;
 const RECONNECT_TIMEOUT = 30;
-const DISCONNECT_TIMEOUT = 600;
+const RECONNECT_DELAY = 60;
 const SWITCH_TIME = 2;
 
 // GLOBALS
@@ -309,17 +309,11 @@ function discHandler(reason) {
             discMessage = "Went offline at " + now.hour + ":" + now.min + ":" + now.sec + ". Reason: " + reason;
         }
 
-        // Schedule an attempt to re-connect in DISCONNECT_TIMEOUT seconds
-        if (reconnectTimer == null) reconnectTimer = imp.wakeup(DISCONNECT_TIMEOUT, function() {
+        // Schedule an attempt to re-connect in RECONNECT_DELAY seconds
+        imp.wakeup(RECONNECT_DELAY, function() {
             server.connect(discHandler, RECONNECT_TIMEOUT);
         });
     } else {
-        // Clear the reconnect timer if in play
-        if (reconnectTimer != null) {
-            imp.cancelwakeup(reconnectTimer);
-            reconnectTimer = null;
-        }
-
         // Back online so request a weather forecast from the agent
         if (discFlag) {
             if (debug) {
