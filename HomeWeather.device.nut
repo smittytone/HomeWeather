@@ -58,7 +58,7 @@ function heartbeat() {
             matrix.powerUp();
             bar.powerUp();
             displayState = DISPLAY_ON;
-            if (debug) server.log("Brightening display at " + now.hour + (now.hour < 12 ? "am" : "pm"));
+            if (debug) server.log("Brightening display at " + now.hour + ":00 hours");
         }
 
         // Every 'SWITCH_TIME' seconds we display the temperature, alternating with the time
@@ -77,7 +77,7 @@ function heartbeat() {
             matrix.powerDown();
             bar.powerDown();
             displayState = DISPLAY_OFF;
-            if (debug) server.log("Dimming display at " + now.hour + (now.hour < 12 ? "am" : "pm"));
+            if (debug) server.log("Dimming display at " + now.hour + ":00 hours");
         }
     }
 }
@@ -311,7 +311,11 @@ function discHandler(reason) {
 
         // Schedule an attempt to re-connect in RECONNECT_DELAY seconds
         imp.wakeup(RECONNECT_DELAY, function() {
-            server.connect(discHandler, RECONNECT_TIMEOUT);
+            if (!server.isconnected()) {
+                server.connect(discHandler, RECONNECT_TIMEOUT);
+            } else {
+                discHandler(SERVER_CONNECTED);
+            }
         });
     } else {
         // Back online so request a weather forecast from the agent
