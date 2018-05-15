@@ -47,7 +47,7 @@ function heartbeat() {
     hbTimer = imp.wakeup(SWITCH_TIME, heartbeat);
 
     now = date();
-    if (Utilities.bstCheck()) now.hour++;
+    if (utilities.bstCheck()) now.hour++;
     if (now.hour > 23) now.hour = 0;
 
     if (showDisplay(now.hour, now.min)) {
