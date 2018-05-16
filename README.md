@@ -16,6 +16,10 @@ The station uses [Dark Sky](https://darksky.net/)’s Dark Sky API for regular w
 
 The code is set to deliver Dark Sky forecast in UK units. You may wish to change this according to your location. Look for line 161 in the agent code.
 
+## Location ##
+
+You will also need my [Location library](https://github.com/smittytone/Location) &mdash; paste it over line 7 in *both* the agent and device code. The Location library requires [Google-provided API keys](https://developers.google.com/maps/documentation/geolocation/intro), which you’ll need to enter into the agent code in the space provided on line 462, which will also need un-commenting.
+
 ## Display Libraries ##
 
 The device code makes use of the accompanying libraries, HT16K33Bargraph, HT16K33Segment and HT16K33Matrix. The code for these libraries is available from the following GitHub repositories:
@@ -38,6 +42,7 @@ The Weather Station has its own, web-based control UI, accessed at the agent URL
 
 **In Developement**
 
+- Add automatic location detection (with Location library)
 - Add ‘Advance Clock’ function to the night mode dimmer
 - Improve disconnection handling
 
