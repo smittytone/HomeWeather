@@ -459,6 +459,7 @@ function apperror(message) {
 // ...and uncomment and fill in these line:
 // const APP_CODE = "YOUR_APP_UUID";
 // forecaster = DarkSky("YOUR_API_KEY");
+// locator = Location("YOUR_API_KEY");
 
 // Set 'forecaster' for UK use
 forecaster.setUnits("uk");

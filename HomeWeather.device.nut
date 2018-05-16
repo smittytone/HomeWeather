@@ -4,10 +4,10 @@
 // IMPORTS
 #import "../generic/utilities.nut"
 #import "../generic/disconnect.nut"
+#import "../Location/location.class.nut"
 #import "../ht16k33segment/ht16k33segment.class.nut"
 #import "../ht16k33matrix/ht16k33matrix.class.nut"
 #import "../ht16k33bargraph/ht16k33bargraph.class.nut"
-#import "../Location/location.class.nut"
 
 // EARLY-RUN CODE
 // Set the imp disconnection policy
