@@ -4,6 +4,7 @@
 // IMPORTS
 #require "DarkSky.class.nut:1.0.1"
 #require "Rocky.class.nut:2.0.0"
+#import "../Location/location.class.nut"
 
 // CONSTANTS
 const RESTART_TIMEOUT = 120;
@@ -302,34 +303,33 @@ const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
   </body>
 </html>";
 
+
 // GLOBALS
 local request = null;
 local forecaster = null;
 local nextForecastTimer = null;
 local agentRestartTimer = null;
-// local apiKey = null;
 local api = null;
 local savedData = null;
-
-local myLongitude = -0.147118;
-local myLatitude = 51.592907;
+local locator = null;
+local location = null;
+//local myLongitude = -0.147118;
+//local myLatitude = 51.592907;
 local debug = false;
 local syncFlag = false;
 local settings = {};
 
-// WEATHER FUNCTIONS
 
+// WEATHER FUNCTIONS
 function getForecast() {
     // Request the weather data from Forecast.io asynchronously
-    applog("Requesting a forecast");
-    forecaster.forecastRequest(myLongitude, myLatitude, forecastCallback);
+    if (location != null) {
+        applog("Requesting a forecast");
+        forecaster.forecastRequest(location.longitude, location.latitude, forecastCallback);
+    }
 
     // Check on the device
-    if (!device.isconnected() && syncFlag) {
-        syncFlag = false;
-        local now = date();
-        applog("Lost device contact at " + now.hour + ":" + now.min + ":" + now.sec);
-    }
+    if (!device.isconnected() && syncFlag) syncFlag = false;
 }
 
 function forecastCallback(err, data) {
@@ -389,6 +389,8 @@ function forecastCallback(err, data) {
     nextForecastTimer = imp.wakeup(FORECAST_REFRESH, getForecast);
 }
 
+
+// INITIALISATION FUNCTIONS
 function deviceReady(dummy) {
     // This is called by the device via agent.send() when it starts
     // or by the agent itself after an agent migration/restart
@@ -397,9 +399,28 @@ function deviceReady(dummy) {
         agentRestartTimer = null;
     }
 
-    syncFlag = true;
-    device.send("homeweather.set.settings", settings);
-    getForecast();
+    if (location != null) {
+        syncFlag = true;
+        device.send("homeweather.set.settings", settings);
+        getForecast();
+    } else {
+        // Get the device's location
+        locator.locate(true, function() {
+            location = locator.getLocation();
+
+            if (!("error" in location)) {
+                // Start the forecasting loop
+                getForecast();
+                if (debug) server.log("Co-ordinates: " + location.longitude + ", " + location.latitude);
+            } else {
+                // Device's location not obtained, so check again in 30s
+                if (debug) apperror(location.error);
+                imp.wakeup(30, function() {
+                    deviceReady(true);
+                });
+            }
+        });
+    }
 }
 
 function resetSettings() {
@@ -420,6 +441,8 @@ function resetSettings() {
     if (result != 0) apperror("Settings could not be saved");
 }
 
+
+// MISC FUNCTIONS
 function applog(message) {
     if (debug) server.log(message);
 }
@@ -428,13 +451,14 @@ function apperror(message) {
     if (debug) server.error(message);
 }
 
+
 // PROGRAM START
 
 // If you are NOT using Squinter or a similar tool, comment out the following line...
 #import "~/Dropbox/Programming/Imp/Codes/homeweather.nut"
 // ...and uncomment and fill in these line:
-// forecaster = DarkSky("YOUR_API_KEY");
 // const APP_CODE = "YOUR_APP_UUID";
+// forecaster = DarkSky("YOUR_API_KEY");
 
 // Set 'forecaster' for UK use
 forecaster.setUnits("uk");

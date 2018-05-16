@@ -3,13 +3,15 @@
 
 // IMPORTS
 #import "../generic/utilities.nut"
+#import "../generic/disconnect.nut"
 #import "../ht16k33segment/ht16k33segment.class.nut"
 #import "../ht16k33matrix/ht16k33matrix.class.nut"
 #import "../ht16k33bargraph/ht16k33bargraph.class.nut"
+#import "../Location/location.class.nut"
 
 // EARLY-RUN CODE
 // Set the imp disconnection policy
-server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
+// server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
 
 // CONSTANTS
 const LED_OFF = 0;
@@ -31,14 +33,15 @@ local savedForecast = null;
 local now = null;
 local hbTimer = null;
 local reconnectTimer = null;
+local locator = null;
 local nightTime = 21;
 local dayTime = 6;
 local displayState = DISPLAY_ON;
-local nightFlag = true;
-local advanceFlag = false;
+local isNight = true;
+local isAdvanceSet = false;
 local timeFlag = true;
-local discFlag = false;
-local discMessage = "";
+local isDisconnected = false;
+local isConnecting = false;
 local debug = true;
 
 // DISPLAY FUNCTIONS
@@ -86,9 +89,9 @@ function showDisplay(hour, minute) {
     // Returns true if the display should be on, false otherwise - default is true / on
     // If we have auto-dimming set, we need only check whether we need to turn the display off
     local returnValue = true;
-    if (nightFlag && (hour == dayTime || hour == nightTime) && advanceFlag) advanceFlag = false;
-    if (nightFlag && (hour < dayTime || hour >= nightTime)) returnValue = false;
-    return (advanceFlag ? !returnValue : returnValue);
+    if (isNight && (hour == dayTime || hour == nightTime) && isAdvanceSet) isAdvanceSet = false;
+    if (isNight && (hour < dayTime || hour >= nightTime)) returnValue = false;
+    return (isAdvanceSet ? !returnValue : returnValue);
 }
 
 function autoBrightness() {
@@ -111,7 +114,7 @@ function displayTemp(data) {
     segment.clearDisplay();
 
     // Disconnected? Indicate on the display and bail
-    if (discFlag) {
+    if (isDisconnected) {
         displayDisconnected();
         return;
     }
@@ -298,39 +301,25 @@ function displayDisconnected() {
 }
 
 // OFFLINE OPERATION FUNCTIONS
-function discHandler(reason) {
+function discHandler(event) {
     // Called if the server connection is broken or re-established
-    // Sets 'discFlag' to true if there is no connection
-    if (reason != SERVER_CONNECTED) {
-        // We weren't previously disconnected, so mark us as disconnected now
-        if (!discFlag) {
-            discFlag = true;
-            local now = date();
-            discMessage = "Went offline at " + now.hour + ":" + now.min + ":" + now.sec + ". Reason: " + reason;
+    if ("message" in event && debug) server.log("Disconnection Manager: " + event.message);
+
+    if ("type" in event) {
+        if (event.type == "disconnected") {
+            isDisconnected = true;
+            isConnecting = false;
         }
 
-        // Schedule an attempt to re-connect in RECONNECT_DELAY seconds
-        imp.wakeup(RECONNECT_DELAY, function() {
-            if (!server.isconnected()) {
-                server.connect(discHandler, RECONNECT_TIMEOUT);
-            } else {
-                discHandler(SERVER_CONNECTED);
-            }
-        });
-    } else {
-        // Back online so request a weather forecast from the agent
-        if (discFlag) {
-            if (debug) {
-                server.log(discMessage);
-                local now = date();
-                server.log("Back online at " + now.hour + ":" + now.min + ":" + now.sec);
-            }
+        if (event.type == "connecting") isConnecting = true;
 
-            // Get a forecast - this will also update the settings
+        if (event.type == "connected") {
+            isDisconnected = false;
+            isConnecting = false;
+
+            // Get an updated forecast from the agent
             agent.send("homeweather.get.forecast", true);
         }
-
-        discFlag = false;
     }
 }
 
@@ -338,8 +327,14 @@ function discHandler(reason) {
 // Load in generic boot message code (comment out if you're not using Squinter)
 #include "../generic/bootmessage.nut"
 
-// Register for unexpected disconnections
-server.onunexpecteddisconnect(discHandler);
+// Set up the disconnection manager
+disconnectionManager.eventCallback = discHandler;
+disconnectionManager.reconnectDelay = RECONNECT_DELAY;
+disconnectionManager.reconnectTimeout = RECONNECT_TIMEOUT;
+disconnectionManager.start();
+
+// Instantiate the location finder
+locator = Location();
 
 // Set up the matrix display
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
@@ -371,16 +366,16 @@ agent.on("homeweather.set.dim.end", function(value) {
 });
 
 agent.on("homeweather.set.offatnight", function(value) {
-    nightFlag = value;
+    isNight = value;
     if (debug) server.log("Night mode " + (value ? "enabled" : "disabled") + " on the device");
 });
 
 agent.on("homeweather.set.advance", function(value) {
     // Hitting 'Advance' takes the timer to the next trigger point.
     // If it's a second advance, that's the equivalent of 'no advance', so
-    // just flip the value of 'advanceFlag'
-    // NOTE This will not be sent by the agent if 'nightFlag' is false
-    advanceFlag = !advanceFlag;
+    // just flip the value of 'isAdvanceSet'
+    // NOTE This will not be sent by the agent if 'isNight' is false
+    isAdvanceSet = !isAdvanceSet;
 });
 
 agent.on("homeweather.set.debug", function(value) {
@@ -391,11 +386,11 @@ agent.on("homeweather.set.debug", function(value) {
 agent.on("homeweather.set.settings", function(settings) {
     nightTime = settings.dimstart;
     dayTime = settings.dimend;
-    nightFlag = settings.offatnight;
+    isNight = settings.offatnight;
 
     if (debug) {
         server.log("Applying settings received from agent");
-        server.log(nightFlag
+        server.log(isNight
             ? format("Display will dim at %ipm and come on at %iam", nightTime, dayTime)
             : "Overnight display dimming disabled");
     }
