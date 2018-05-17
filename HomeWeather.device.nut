@@ -34,10 +34,10 @@ local now = null;
 local hbTimer = null;
 local reconnectTimer = null;
 local locator = null;
-local nightTime = 21;
-local dayTime = 6;
+local nightTime = 23;
+local dayTime = 8;
 local displayState = DISPLAY_ON;
-local isNight = true;
+local isNight = false;
 local isAdvanceSet = false;
 local timeFlag = true;
 local isDisconnected = false;
@@ -292,11 +292,20 @@ function setIcons() {
 }
 
 function displayDisconnected() {
-    // Put 'dISC' onto the segment display to indicate status
-    segment.writeChar(0, 0x5E, false);
-    segment.writeChar(1, 0x06, false);
-    segment.writeChar(3, 0x6D, false);
-    segment.writeChar(4, 0x39, false);
+    // Put 'dISC' or 'COnn' onto the segment display to indicate status
+    if (isConnecting) {
+        // 'dISC'
+        segment.writeChar(0, 0x5E, false);
+        segment.writeChar(1, 0x06, false);
+        segment.writeChar(3, 0x6D, false);
+        segment.writeChar(4, 0x39, false);
+    } else {
+        // 'CONN'
+        segment.writeChar(0, 0x39, false);
+        segment.writeChar(1, 0x3F, false);
+        segment.writeChar(3, 0x37, false);
+        segment.writeChar(4, 0x39, false);
+    }
     segment.updateDisplay();
 }
 
@@ -391,7 +400,7 @@ agent.on("homeweather.set.settings", function(settings) {
     if (debug) {
         server.log("Applying settings received from agent");
         server.log(isNight
-            ? format("Display will dim at %ipm and come on at %iam", nightTime, dayTime)
+            ? format("Display will dim at %i:00 and come on at %i:00", nightTime, dayTime)
             : "Overnight display dimming disabled");
     }
 });
