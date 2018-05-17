@@ -3,12 +3,13 @@
 
 // IMPORTS
 #require "DarkSky.class.nut:1.0.1"
-#require "Rocky.class.nut:2.0.0"
+#require "Rocky.class.nut:2.0.1"
 #import "../Location/location.class.nut"
 
 // CONSTANTS
 const RESTART_TIMEOUT = 120;
 const FORECAST_REFRESH = 900;
+const LOCATION_RETRY = 60;
 const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
 <html>
     <head>
@@ -392,32 +393,42 @@ function forecastCallback(err, data) {
 
 // INITIALISATION FUNCTIONS
 function deviceReady(dummy) {
-    // This is called by the device via agent.send() when it starts
-    // or by the agent itself after an agent migration/restart
+    // This is called ONLY by the device via agent.send() when it starts
+    // or by the agent itself after an agent migration/restart IF the device is already connected
     if (agentRestartTimer) {
+        // Agent started less than RESTART_TIMEOUT seconds ago
         imp.cancelwakeup(agentRestartTimer);
         agentRestartTimer = null;
     }
 
+    // Send the device its settings
+    device.send("homeweather.set.settings", settings);
+    syncFlag = true;
+
+    // Do we have a location for the device?
     if (location != null) {
-        syncFlag = true;
-        device.send("homeweather.set.settings", settings);
+        // Yes, so get a fresh forecast
+        // NOTE this will be the case after device-only restarts
         getForecast();
     } else {
         // Get the device's location
+        // NOTE this will the case after device+agent restarts
         locator.locate(true, function() {
             location = locator.getLocation();
 
             if (!("error" in location)) {
                 // Start the forecasting loop
+                if (debug) applog("Co-ordinates: " + location.longitude + ", " + location.latitude);
                 getForecast();
-                if (debug) server.log("Co-ordinates: " + location.longitude + ", " + location.latitude);
             } else {
-                // Device's location not obtained, so check again in 30s
+                // Device's location not obtained
                 if (debug) apperror(location.error);
-                imp.wakeup(30, function() {
-                    deviceReady(true);
-                });
+
+                // Clear 'location' to force the code to try to get it again
+                location = null;
+
+                // Check again in LOCATION_RETRY seconds
+                imp.wakeup(LOCATION_RETRY, function() { deviceReady(true); });
             }
         });
     }
@@ -474,7 +485,7 @@ settings = server.load();
 
 if (settings.len() == 0) {
     // No settings saved so set the defaults
-    server.log("First run - applying default settings");
+    applog("First run - applying default settings");
     resetSettings();
 } else {
     if ("debug" in settings) debug = settings.debug;
@@ -514,7 +525,7 @@ api.post("/dimmer", function(context) {
     try {
         data = http.jsondecode(context.req.rawbody);
     } catch (err) {
-        server.error(err);
+        apperror(err);
         context.send(400, "Bad data posted");
         return;
     }
@@ -589,9 +600,9 @@ api.post("/debug", function(context) {
         if ("debug" in data) {
             debug = data.debug;
             if (debug) {
-                server.log("Debug enabled");
+                applog("Debug enabled");
             } else {
-                server.log("Debug disabled");
+                applog("Debug disabled");
             }
 
             device.send("homeweather.set.debug", debug);
@@ -614,7 +625,7 @@ api.post("/reset", function(context) {
         if ("reset" in data) {
             if (data.reset) {
                 // Perform the reset
-                server.log("Resetting Weather Station");
+                applog("Resetting Weather Station");
                 resetSettings();
 
                 // Update the device
@@ -625,7 +636,7 @@ api.post("/reset", function(context) {
             }
         }
     } catch (err) {
-        server.error(err);
+        apperror(err);
         context.send(400, "Bad data posted");
         return;
     }
@@ -652,7 +663,9 @@ api.get("/controller/state", function(context) {
 agentRestartTimer = imp.wakeup(RESTART_TIMEOUT, function() {
     agentRestartTimer = null;
     if (!syncFlag && device.isconnected()) {
+        // Device is online so call 'deviceReady()'
         applog("Recommencing forecasting due to agent restart");
         deviceReady(true);
     }
+    // Otherwise device is not online, so the agent does nothing but wait for it to come back
 });
