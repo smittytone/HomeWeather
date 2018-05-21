@@ -9,9 +9,6 @@
 #import "../ht16k33matrix/ht16k33matrix.class.nut"
 #import "../ht16k33bargraph/ht16k33bargraph.class.nut"
 
-// EARLY-RUN CODE
-// Set the imp disconnection policy
-// server.setsendtimeoutpolicy(RETURN_ON_ERROR, WAIT_TIL_SENT, 10);
 
 // CONSTANTS
 const LED_OFF = 0;
@@ -23,6 +20,7 @@ const DISPLAY_OFF = 0x00;
 const RECONNECT_TIMEOUT = 30;
 const RECONNECT_DELAY = 60;
 const SWITCH_TIME = 2;
+
 
 // GLOBALS
 local matrix = null;
@@ -43,6 +41,7 @@ local timeFlag = true;
 local isDisconnected = false;
 local isConnecting = false;
 local debug = true;
+
 
 // DISPLAY FUNCTIONS
 function heartbeat() {
@@ -318,11 +317,9 @@ function discHandler(event) {
         if (event.type == "disconnected") {
             isDisconnected = true;
             isConnecting = false;
-        }
-
-        if (event.type == "connecting") isConnecting = true;
-
-        if (event.type == "connected") {
+        } else if (event.type == "connecting") {
+            isConnecting = true;
+        } else if (event.type == "connected") {
             isDisconnected = false;
             isConnecting = false;
 
