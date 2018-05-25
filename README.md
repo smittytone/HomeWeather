@@ -39,6 +39,9 @@ The Weather Station has its own, web-based control UI, accessed at the agent URL
 ## Release Notes ##
 
 - 2.6 **In Developement**
+    - Update to [Bootstrap 4.1.1](https://getbootstrap.com/)
+        - Update Web UI based on Bootstrap
+        - Separate out Web UI into own file for clarity
     - Add automatic location detection (with [Location](https://github.com/smittytone/Location))
     - Add ‘Advance Clock’ function to the night mode dimmer
     - Improve disconnection handling with [DisconnectionManager](https://github.com/smittytone/generic/blob/master/disconnect.nut)
