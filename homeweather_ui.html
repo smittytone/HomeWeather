@@ -222,7 +222,8 @@
         if (callback && ('temp' in response)) {
           callback(response);
         }
-      }
+      },
+      cache: false
     });
   }
 
@@ -250,7 +251,8 @@
         };
 
         getState(updateReadout);
-      }
+      },
+      cache: false
     });
   }
 
@@ -279,7 +281,8 @@
         };
 
         getState(updateReadout);
-      }
+      },
+      cache: false
     });
   }
 
@@ -288,7 +291,8 @@
     $.ajax({
       url : agenturl + '/debug',
       type: 'POST',
-      data: JSON.stringify({ 'debug' : document.getElementById('debug').checked })
+      data: JSON.stringify({ 'debug' : document.getElementById('debug').checked }),
+      cache: false
     });
   }
 
@@ -316,7 +320,8 @@
         };
 
         getState(updateReadout);
-      }
+      },
+      cache: false
     });
   }
 
@@ -328,7 +333,8 @@
       data: JSON.stringify({ 'reset' : true }),
       success: function(response) {
         getState(updateReadout);
-      }
+      },
+      cache: false
     });
   }
   </script>
