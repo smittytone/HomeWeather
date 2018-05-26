@@ -46,6 +46,7 @@ The Weather Station has its own, web-based control UI, accessed at the agent URL
     - Add ‘Advance Clock’ function to the night mode dimmer
     - Improve disconnection handling with [DisconnectionManager](https://github.com/smittytone/generic/blob/master/disconnect.nut)
     - Update to [JQuery 3.3.1](https://jquery.com)
+    - Prevent Ajax XHR cacheing
 - 2.5
     - Assorted tweaks and generally bringing everything up to date
 - 2.4
