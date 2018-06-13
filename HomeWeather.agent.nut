@@ -2,9 +2,10 @@
 // Copyright Tony Smith, 2015-2018
 
 // IMPORTS
-#require "DarkSky.class.nut:1.0.1"
+//#require "DarkSky.class.nut:1.0.1"
 #require "Rocky.class.nut:2.0.1"
 #import "../Location/location.class.nut"
+#import "../DarkSky/DarkSky.class.nut"
 
 // CONSTANTS
 const RESTART_TIMEOUT = 120;
@@ -26,12 +27,11 @@ local api = null;
 local savedData = null;
 local locator = null;
 local location = null;
-//local myLongitude = -0.147118;
-//local myLatitude = 51.592907;
 local debug = false;
 local syncFlag = false;
 local settings = {};
-
+//local myLongitude = -0.147118;
+//local myLatitude = 51.592907;
 
 // WEATHER FUNCTIONS
 function getForecast() {
@@ -186,6 +186,7 @@ function apperror(message) {
 
 // Set 'forecaster' for UK use
 forecaster.setUnits("uk");
+forecaster.setLanguage("en");
 
 // Register the function to call when the device asks for a forecast
 // Once this request has been successfully processed, the agent will
