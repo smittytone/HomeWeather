@@ -30,8 +30,6 @@ local location = null;
 local debug = false;
 local syncFlag = false;
 local settings = {};
-//local myLongitude = -0.147118;
-//local myLatitude = 51.592907;
 
 // WEATHER FUNCTIONS
 function getForecast() {
