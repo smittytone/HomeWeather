@@ -2,10 +2,9 @@
 // Copyright Tony Smith, 2015-2018
 
 // IMPORTS
-//#require "DarkSky.class.nut:1.0.1"
+#require "DarkSky.class.nut:1.0.1"
 #require "Rocky.class.nut:2.0.1"
 #import "../Location/location.class.nut"
-#import "../DarkSky/DarkSky.class.nut"
 
 // CONSTANTS
 const RESTART_TIMEOUT = 120;
