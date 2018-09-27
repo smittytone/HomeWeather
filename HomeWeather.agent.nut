@@ -28,12 +28,13 @@ local locator = null;
 local location = null;
 local debug = false;
 local syncFlag = false;
+local darkSkyCount = 0;
 local settings = {};
 
 // WEATHER FUNCTIONS
 function getForecast() {
     // Request the weather data from Forecast.io asynchronously
-    if (location != null) {
+    if (location != null && darkSkyCount < 990) {
         applog("Requesting a forecast");
         forecaster.forecastRequest(location.longitude, location.latitude, forecastCallback);
     }
@@ -91,7 +92,10 @@ function forecastCallback(err, data) {
             }
         }
 
-        if ("callCount" in data) applog("Current Forecast API call tally: " + data.callCount + "/1000");
+        if ("callCount" in data) {
+            applog("Current Forecast API call tally: " + data.callCount + "/1000");
+            darkSkyCount = data.callCount;
+        }
     }
 
     // Get the next forecast in an 'FORECAST_REFRESH' minutes' time
