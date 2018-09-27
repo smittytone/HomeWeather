@@ -1,297 +1,46 @@
 // Home Weather - wall-mount weather Station
-// Copyright Tony Smith, 2015-2017
+// Copyright Tony Smith, 2015-2018
 
+// IMPORTS
 #require "DarkSky.class.nut:1.0.1"
-#require "Rocky.class.nut:2.0.0"
+#require "Rocky.class.nut:2.0.1"
+#import "../Location/location.class.nut"
 
 // CONSTANTS
 const RESTART_TIMEOUT = 120;
 const FORECAST_REFRESH = 900;
-const HTML_STRING = @"<!DOCTYPE html><html lang='en-US'><meta charset='UTF-8'>
-<html>
-    <head>
-        <title>Home Weather Station Control</title>
-        <link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css'>
-        <link href='https://fonts.googleapis.com/css?family=Abel' rel='stylesheet'>
-        <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
-        <link rel='apple-touch-icon' href='https://smittytone.github.io/images/ati-wstation.png'>
-        <link rel='shortcut icon' href='https://smittytone.github.io/images/ico-wstation.ico'>
-        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-        <style>
-            .center { margin-left: auto; margin-right: auto; margin-bottom: auto; margin-top: auto; }
-            body {background-color: dimGrey;}
-            p {color: white; font-family: Abel}
-            h2 {color: white; font-family: Abel; font-weight:bold}
-            h4 {color: white; font-family: Abel}
-            td {color: white; font-family: Abel}
-            p.showhide {cursor: pointer}
-            .modal {display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%%; height: 100%%; overflow: auto;
-                background-color: rgb(0,0,0);
-                background-color: rgba(0,0,0,0.4)}
-            .modal-content-ok {background-color: rgba(134,231,70,0.7);
-                margin: 10%% auto; padding: 15px;
-                border: 2px solid #86D546; width: 50%%}
-            .tabborder {width: 20%%}
-            .tabcontent {width: 60%%}
-            .uicontent {border: 2px solid white}
-            .container {padding: 20px}
+const LOCATION_RETRY = 60;
+// If you are NOT using Squinter or a similar tool, replace the #import statement below
+// with the contents of the named file (homeweather_ui.html)
+const HTML_STRING = @"
+#import "homeweather_ui.html"
+";
 
-            @media only screen and (max-width: 640px) {
-                .tabborder {width: 5%%}
-                .tabcontent {width: 90%%}
-                .container {padding: 5px}
-                .uicontent {border: 0px}
-            }
-        </style>
-    </head>
-    <body>
-        <div id='confirmModal' class='modal'>
-            <div class='modal-content-ok'>
-                <h3 align='center' style='color: black; font-family: Abel'>Night mode times updated</h3>
-            </div>
-        </div>
-        <div class='container'>
-            <div class='uicontent'>
-                <h2 class='text-center'>Home Weather Station Control<br>&nbsp;</h2>
-                <table width='100%%'>
-                    <tr>
-                        <td class='tabborder'>&nbsp;</td>
-                        <td class='tabcontent'>
-                            <div class='current-status'>
-                                <h4 class='temp-status' align='center'>Current Temperature: <span></span>&deg;C&nbsp;</h4>
-                                <h4 class='outlook-status' align='center'>Weather Outlook: <span></span></h4>
-                                <p align='center'>Forecast updates automatically every two minutes</p>
-                                <p class='error-message' align='center'><i><span></span></i></p>
-                            </div>
-                            <br>
-                            <hr>
-                            <div class='controls' align='center'>
-                                <div class='update-fields'>
-                                    <table width='100%%'>
-                                        <tr>
-                                            <td align='center' colspan='2'><h4 class='dimstatus'><span>Night Mode Enabled</span></h4><br></td>
-                                        </tr>
-                                        <tr>
-                                            <td align='right' width='60%%'>Night Mode Start Time (hour)&nbsp;</td>
-                                            <td align='left' width='40%%'>&nbsp;<input type='text' id='dimmerstart' min='0' max='22' style='width:40px;color:CornflowerBlue'></input></td>
-                                        </tr>
-                                        <tr>
-                                            <td align='right'>Night Mode End Time (hour)&nbsp;</td>
-                                            <td align='left'>&nbsp;<input type='text' id='dimmerend' min='1' max='23' style='width:40px;color:CornflowerBlue'></input></td>
-                                        </tr>
-                                        <tr>
-                                            <td align='center' colspan='2'><small>Set the on and off times in the 24-hour clock format</small></td>
-                                        </tr>
-                                    </table>
-                                    <p>&nbsp;</p>
-                                </div>
-                                <div class='update-button' style='color:black;font-family:Abel'>
-                                    <button type='submit' id='dimmer-button' style='height:32px;width:200px'>Set Night Mode Times</button><br>&nbsp;
-                                </div>
-                                <div class='enable-button' style='color:black;font-family:Abel'>
-                                    <button type='submit' id='dimmer-action' style='height:32px;width:200px'>Disable Night Mode</button>
-                                </div>
-                                <hr>
-                                <div class='advancedsettings'>
-                                    <p class='showhide' align='center'>Show Advanced Settings</p>
-                                    <div class='advanced' align='center'>
-                                        <div class='debug-checkbox' style='color:white;font-family:Abel'>
-                                            <small><input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode</small><br>&nbsp;
-                                        </div>
-                                        <div class='reset-button' style='color:black;font-family:Abel'>
-                                            <button type='submit' id='resett-button' style='height:32px;width:200px'>Reset Station</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <hr>
-                            <p class='text-center' style='font-family:Oswald'><small>Home Weather Station Control copyright &copy; Tony Smith, 2014-17</small><br>&nbsp;<br><a href='https://github.com/smittytone/HomeWeather'><img src='https://smittytone.github.io/images/rassilon.png' width='32' height='32'></a></p>
-                        </td>
-                        <td class='tabborder'>&nbsp;</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
-    <script>
-        $('.advanced').hide();
-
-        // Variables
-        var dimstate = true;
-        var agenturl = '%s';
-        var timer;
-
-        // Get initial readout data
-        getState(updateReadout);
-
-        // Set object click actions
-        $('.update-button button').click(setDimTime);
-        $('.enable-button button').click(setDimEnable);
-        $('.reset-button button').click(doReset);
-        $('#debug').click(setDebug);
-        $('.showhide').click(function(){
-            $('.advanced').toggle();
-            var isVis = $('.advanced').is(':visible');
-            $('.showhide').text(isVis ? 'Hide Advanced Settings' : 'Show Advanced Settings');
-        });
-
-        function setDimTime(e){
-            // Set the night mode duration
-            e.preventDefault();
-            var start = document.getElementById('dimmerstart').value;
-            var end = document.getElementById('dimmerend').value;
-            setTime(start, end);
-        }
-
-        function setDimEnable(e){
-            // Enable/disable night mode
-            e.preventDefault();
-            dimstate = !dimstate;
-            setDimUI(dimstate);
-            setState(dimstate);
-        }
-
-        function updateReadout(data) {
-            // Update the UI with data from the device
-            if (data.error) {
-                $('.error-message span').text(data.error);
-            } else {
-                // Set the weather forecast data
-                $('.temp-status span').text(data.temp);
-                $('.outlook-status span').text(data.outlook);
-            }
-
-            // Set the 'enable' button text
-            dimstate = data.enabled;
-            setDimUI(dimstate);
-
-            // Set the night mode times
-            document.getElementById('dimmerstart').value = data.dimstart;
-            document.getElementById('dimmerend').value = data.dimend;
-
-            // Set the debug mode advanced option
-            document.getElementById('debug').checked = data.debug;
-
-            // Clear the error readout
-            $('.error-message span').text(' ');
-
-            // Auto-reload data in 120 seconds
-            setTimeout(function() {
-                getState(updateReadout);
-            }, 120000);
-        }
-
-        function setDimUI(state) {
-            $('#dimmer-action').text(state ? 'Disable Night Mode' : 'Enable Night Mode');
-            $('.dimstatus span').text(state ? 'Night Mode Enabled' : 'Night Mode Disabled');
-        }
-
-        function getState(callback) {
-            // Get the data from the device
-            $.ajax({
-                url : agenturl + '/dimmer',
-                type: 'GET',
-                success : function(response) {
-                    response = JSON.parse(response);
-                    if (callback && ('temp' in response)) {
-                        callback(response);
-                    }
-                }
-            });
-        }
-
-        function setTime(start, end) {
-            // Set the night mode times
-            $.ajax({
-                url : agenturl + '/dimmer',
-                type: 'POST',
-                data: JSON.stringify({ 'dimstart' : start, 'dimend' : end }),
-                success : function(response) {
-                    clearTimeout(timer);
-
-                    var modal = document.getElementById('confirmModal');
-                    modal.style.display = 'block';
-
-                    timer = setTimeout(function() {
-                        modal.style.display = 'none';
-                    }, 6000);
-
-                    window.onclick = function(event) {
-                        if (event.target == modal) {
-                            clearTimeout(timer);
-                            modal.style.display = 'none';
-                        }
-                    };
-
-                    getState(updateReadout);
-                }
-            });
-        }
-
-        function setState(aState) {
-            // Enable/disable night mode
-            $.ajax({
-                url : agenturl + '/dimmer',
-                type: 'POST',
-                data: JSON.stringify({ 'enabled' : aState }),
-                success : function(response) {
-                    getState(updateReadout);
-                }
-            });
-        }
-
-        function setDebug() {
-            // Tell the device to enter or leave debug mode
-            $.ajax({
-                url : agenturl + '/debug',
-                type: 'POST',
-                data: JSON.stringify({ 'debug' : document.getElementById('debug').checked })
-            });
-        }
-
-        function doReset() {
-            // Tell the device to reset itself
-            $.ajax({
-                url : agenturl + '/reset',
-                type: 'POST',
-                data: JSON.stringify({ 'reset' : true }),
-                success: function(response) {
-                    getState(updateReadout);
-                }
-            });
-        }
-    </script>
-  </body>
-</html>";
 
 // GLOBALS
 local request = null;
 local forecaster = null;
 local nextForecastTimer = null;
 local agentRestartTimer = null;
-local apiKey = null;
 local api = null;
 local savedData = null;
-
-local myLongitude = -0.147118;
-local myLatitude = 51.592907;
+local locator = null;
+local location = null;
 local debug = false;
 local syncFlag = false;
+local darkSkyCount = 0;
 local settings = {};
 
 // WEATHER FUNCTIONS
-
 function getForecast() {
     // Request the weather data from Forecast.io asynchronously
-    applog("Requesting a forecast");
-    forecaster.forecastRequest(myLongitude, myLatitude, forecastCallback);
+    if (location != null && darkSkyCount < 990) {
+        applog("Requesting a forecast");
+        forecaster.forecastRequest(location.longitude, location.latitude, forecastCallback);
+    }
 
     // Check on the device
-    if (!device.isconnected() && syncFlag) {
-        syncFlag = false;
-        local now = date();
-        applog("Lost device contact at " + now.hour + ":" + now.min + ":" + now.sec);
-    }
+    if (!device.isconnected() && syncFlag) syncFlag = false;
 }
 
 function forecastCallback(err, data) {
@@ -343,7 +92,10 @@ function forecastCallback(err, data) {
             }
         }
 
-        if ("callCount" in data) applog("Current Forecast API call tally: " + data.callCount + "/1000");
+        if ("callCount" in data) {
+            applog("Current Forecast API call tally: " + data.callCount + "/1000");
+            darkSkyCount = data.callCount;
+        }
     }
 
     // Get the next forecast in an 'FORECAST_REFRESH' minutes' time
@@ -351,17 +103,48 @@ function forecastCallback(err, data) {
     nextForecastTimer = imp.wakeup(FORECAST_REFRESH, getForecast);
 }
 
+
+// INITIALISATION FUNCTIONS
 function deviceReady(dummy) {
-    // This is called by the device via agent.send() when it starts
-    // or by the agent itself after an agent migration/restart
+    // This is called ONLY by the device via agent.send() when it starts
+    // or by the agent itself after an agent migration/restart IF the device is already connected
     if (agentRestartTimer) {
+        // Agent started less than RESTART_TIMEOUT seconds ago
         imp.cancelwakeup(agentRestartTimer);
         agentRestartTimer = null;
     }
 
-    syncFlag = true;
+    // Send the device its settings
     device.send("homeweather.set.settings", settings);
-    getForecast();
+    syncFlag = true;
+
+    // Do we have a location for the device?
+    if (location != null) {
+        // Yes, so get a fresh forecast
+        // NOTE this will be the case after device-only restarts
+        getForecast();
+    } else {
+        // Get the device's location
+        // NOTE this will the case after device+agent restarts
+        locator.locate(true, function() {
+            location = locator.getLocation();
+
+            if (!("error" in location)) {
+                // Start the forecasting loop
+                if (debug) applog("Co-ordinates: " + location.longitude + ", " + location.latitude);
+                getForecast();
+            } else {
+                // Device's location not obtained
+                if (debug) apperror(location.error);
+
+                // Clear 'location' to force the code to try to get it again
+                location = null;
+
+                // Check again in LOCATION_RETRY seconds
+                imp.wakeup(LOCATION_RETRY, function() { deviceReady(true); });
+            }
+        });
+    }
 }
 
 function resetSettings() {
@@ -382,6 +165,8 @@ function resetSettings() {
     if (result != 0) apperror("Settings could not be saved");
 }
 
+
+// MISC FUNCTIONS
 function applog(message) {
     if (debug) server.log(message);
 }
@@ -390,17 +175,19 @@ function apperror(message) {
     if (debug) server.error(message);
 }
 
+
 // PROGRAM START
 
-// You will need to uncomment the following lines...
-// forecaster = DarkSky("<YOUR_API_KEY>");
-// apiKey = "<YOUR_SELF-GENERATED_UUID_(OPTIONAL)>"
-
-// ...and comment out the following line if you are not using Squinter
+// If you are NOT using Squinter or a similar tool, comment out the following line...
 #import "~/Dropbox/Programming/Imp/Codes/homeweather.nut"
+// ...and uncomment and fill in these line:
+// const APP_CODE = "YOUR_APP_UUID";
+// forecaster = DarkSky("YOUR_API_KEY");
+// locator = Location("YOUR_API_KEY");
 
 // Set 'forecaster' for UK use
 forecaster.setUnits("uk");
+forecaster.setLanguage("en");
 
 // Register the function to call when the device asks for a forecast
 // Once this request has been successfully processed, the agent will
@@ -412,7 +199,7 @@ settings = server.load();
 
 if (settings.len() == 0) {
     // No settings saved so set the defaults
-    server.log("First run - applying default settings");
+    applog("First run - applying default settings");
     resetSettings();
 } else {
     if ("debug" in settings) debug = settings.debug;
@@ -452,7 +239,7 @@ api.post("/dimmer", function(context) {
     try {
         data = http.jsondecode(context.req.rawbody);
     } catch (err) {
-        server.error(err);
+        apperror(err);
         context.send(400, "Bad data posted");
         return;
     }
@@ -527,9 +314,9 @@ api.post("/debug", function(context) {
         if ("debug" in data) {
             debug = data.debug;
             if (debug) {
-                server.log("Debug enabled");
+                applog("Debug enabled");
             } else {
-                server.log("Debug disabled");
+                applog("Debug disabled");
             }
 
             device.send("homeweather.set.debug", debug);
@@ -552,7 +339,7 @@ api.post("/reset", function(context) {
         if ("reset" in data) {
             if (data.reset) {
                 // Perform the reset
-                server.log("Resetting Weather Station");
+                applog("Resetting Weather Station");
                 resetSettings();
 
                 // Update the device
@@ -563,7 +350,7 @@ api.post("/reset", function(context) {
             }
         }
     } catch (err) {
-        server.error(err);
+        apperror(err);
         context.send(400, "Bad data posted");
         return;
     }
@@ -571,15 +358,15 @@ api.post("/reset", function(context) {
     context.send(200, (debug ? "Debug on" : "Debug off"));
 });
 
-// GET at /info returns device capabilities (EXPERIMENTAL)
-api.get("/info", function(context) {
-    local info = {};
-    info.app <- "8B6B3A11-00B4-4304-BE27-ABD11DB1B774";
-    info.watchsupported <- "true";
+// GET at /controller/info returns app UUID
+api.get("/controller/info", function(context) {
+    local info = { "appcode": APP_CODE,
+                   "watchsupported": "true" };
     context.send(200, http.jsonencode(info));
 });
 
-api.get("/state", function(context) {
+// GET at /controller/state returns app UUID
+api.get("/controller/state", function(context) {
     local data = device.isconnected() ? "1" : "0"
     context.send(200, data);
 });
@@ -590,7 +377,9 @@ api.get("/state", function(context) {
 agentRestartTimer = imp.wakeup(RESTART_TIMEOUT, function() {
     agentRestartTimer = null;
     if (!syncFlag && device.isconnected()) {
+        // Device is online so call 'deviceReady()'
         applog("Recommencing forecasting due to agent restart");
         deviceReady(true);
     }
+    // Otherwise device is not online, so the agent does nothing but wait for it to come back
 });

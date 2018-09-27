@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang='en-US'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css'>
+  <link href='https://fonts.googleapis.com/css?family=Abel|Oswald|Audiowide' rel='stylesheet'>
+  <link rel='apple-touch-icon' href='https://smittytone.github.io/images/ati-wstation.png'>
+  <link rel='shortcut icon' href='https://smittytone.github.io/images/ico-wstation.ico'>
+  <title>Home Weather Station</title>
+  <style>
+    .showhide { -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none;
+                -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: pointer }
+    .center { margin-left: auto; margin-right: auto; margin-bottom: auto; margin-top: auto;}
+    .modal {display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%%; height: 100%%; overflow: auto;
+            background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4)}
+    .modal-content-ok {background-color: rgba(134,231,70,0.7); margin: 10%% auto; padding: 5px;
+                       border: 2px solid #86D546; width: 50%%}
+    .uicontent {border: 2px solid #6C747E}
+    .container {padding: 20px}
+    .btn-secondary {width: 200px;}
+    body {background-color: #AEBCCE;}
+    p {color: black; font-family: Abel}
+    h2 {color: black; font-family: Audiowide; font-weight:bold}
+    h4 {color: black; font-family: Abel; font-size: 22px;}
+    td {color: black; font-family: Abel}
+    p.showhide {cursor: pointer}
+    hr {border-color: #6C747E;}
+    @media only screen and (max-width: 640px) {
+        .container {padding: 5px}
+        .uicontent {border: 0px}
+        .col-2 {max-width: 0%%; flex: 0 0 0%%}
+        .col-8 {max-width: 100%%; flex: 0 0 100%%}
+        .ebutton {width: 150px;}
+        .abutton {width: 150px;}
+    }
+  </style>
+</head>
+<body>
+  <div id='confirmModal' class='modal'>
+    <div class='modal-content-ok'>
+      <h3 align='center' style='color: black; font-family: Abel'>Night mode times updated</h3>
+    </div>
+  </div>
+  <div id='advanceModal' class='modal'>
+    <div class='modal-content-ok'>
+      <h3 align='center' style='color: black; font-family: Abel'>Clock advanced</h3>
+    </div>
+  </div>
+  <div id='enableModal' class='modal'>
+    <div class='modal-content-ok'>
+      <h3 align='center' style='color: black; font-family:Abel;' class='mtext'><span>Night mode enabled</span></h3>
+    </div>
+  </div>
+  <div class='container'>
+    <div class='row uicontent'>
+      <div class='col'>
+        <!-- Title and Data Readout Row -->
+        <div class='row' align='center'>
+          <div class='col'>
+            <h2>&nbsp;<br>Home Weather Station<br>&nbsp;</h2>
+            <h4 class='temp-status'>Current Temperature: <span></span>&deg;C&nbsp;</h4>
+            <h4 class='outlook-status'>Weather Outlook: <span></span></h4>
+            <p>Forecast updates automatically every two minutes</p>
+            <p class='error-message'><i><span></span></i></p>
+            <p><small>&nbsp;</small></p>
+          </div>
+        </div>
+        <!-- Controls and Settings Row -->
+        <div class='row'>
+          <div class='col'>
+            <!-- Controls Sub-row-->
+            <div class='row' style='font-family:Abel;' align='center'>
+              <div class='col-6 advance-button' align='right'>
+                <button class='btn btn-secondary abutton' type='submit' id='dimmer-advance'>Advance Clock</button>
+              </div>
+              <div class='col-6 enable-button' align='left'>
+                <button class='btn btn-secondary ebutton' type='submit' id='dimmer-action'>Disable Night Mode</button>
+              </div>
+            </div>
+            <!-- Night Mode Settings Sub-row-->
+            <div class='row'>
+              <div class='col'>
+                <p>&nbsp;</p>
+                <h4 class='dimstatus text-center'><span>Night Mode Enabled</span><br>&nbsp;</h4>
+                <div class='form-group row' style='font-family:Abel;'>
+                  <label for='colFormLabel' class='col-7 col-form-label' align='right' style='color:black'>Night Mode Start Time (hour)</label>
+                  <div class='col-5' align='left'>
+                    <input type='text' class='form-control' id='dimmerstart' min='0' max='22'
+                      style='width:42px;color:CornflowerBlue' placeholder='0'>
+                  </div>
+                </div>
+                <div class='form-group row' style='font-family:Abel;'>
+                  <label for='colFormLabel' class='col-7 col-form-label' align='right' style='color:black'>Night Mode End Time (hour)</label>
+                  <div class='col-5' align='left'>
+                    <input type='text' class='form-control' id='dimmerend' min='1' max='23'
+                      style='width:42px;color:CornflowerBlue' placeholder='23'>
+                  </div>
+                </div>
+                <p class='text-center'><small>Set the on and off times in the 24-hour clock format</small></p>
+                <div class='update-button' align='center' style='font-family:Abel;'>
+                  <button type='submit' class='btn btn-secondary btn-sm' id='dimmer-button'>Set Night Mode Times</button>
+                </div>
+              </div>
+            </div>
+            <!-- Advanced Settings Sub-row-->
+            <div class='row' align='center'>
+              <div class='col-2'>&nbsp;</div>
+              <div class='col-8'>
+                <p>&nbsp;</p>
+                <div class='advancedsettings' style='background-color:#6C747E;width:400px;'>
+                  <p class='showhide' style='color:white'>Show Advanced Settings</p>
+                  <div class='advanced'>
+                    <div class='debug-checkbox' style='color:white;font-family:Abel,sans-serif'>
+                      <small><input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode</small><br>&nbsp;
+                    </div>
+                    <div class='reset-button' style='font-family:Abel,sans-serif'>
+                      <button class='btn btn-danger' type='submit' id='resett-button' style='width:200px'>Reset Station</button>
+                    </div>
+                    <p>&nbsp;</p>
+                  </div>
+                </div>
+              </div>
+              <div class='col-2'>&nbsp;</div>
+            </div>
+          </div>
+        </div>
+        <!-- Colophon Row -->
+        <div class='row' align='center'>
+          <div class='col'>
+            <p style='font-family:Oswald;'><small>Home Weather Station Control &copy; Tony Smith, 2014-18</small><br>
+            <a href='https://github.com/smittytone/HomeWeather'>
+            <img src='https://smittytone.github.io/images/rassilonblack.png' width='32' height='32'></a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
+  <script>
+  $('.advanced').hide();
+
+  // Variables
+  var dimstate = true;
+  var agenturl = '%s';
+  var timer;
+
+  // Get initial readout data
+  getState(updateReadout);
+
+  // Set object click actions
+  $('.update-button button').click(setDimTime);
+  $('.enable-button button').click(setDimEnable);
+  $('.advance-button button').click(doAdvance);
+  $('.reset-button button').click(doReset);
+  $('#debug').click(setDebug);
+  $('.showhide').click(function(){
+    $('.advanced').toggle();
+    var isVis = $('.advanced').is(':visible');
+    $('.showhide').text(isVis ? 'Hide Advanced Settings' : 'Show Advanced Settings');
+  });
+
+  function setDimTime(e){
+    // Set the night mode duration
+    e.preventDefault();
+    var start = document.getElementById('dimmerstart').value;
+    var end = document.getElementById('dimmerend').value;
+    setTime(start, end);
+  }
+
+  function setDimEnable(e){
+    // Enable/disable night mode
+    e.preventDefault();
+    dimstate = !dimstate;
+    setDimUI(dimstate);
+    setState(dimstate);
+  }
+
+  function updateReadout(data) {
+    // Update the UI with data from the device
+    if (data.error) {
+      $('.error-message span').text(data.error);
+    } else {
+      // Set the weather forecast data
+      $('.temp-status span').text(data.temp);
+      $('.outlook-status span').text(data.outlook);
+    }
+
+    // Set the 'enable' button text
+    dimstate = data.enabled;
+    setDimUI(dimstate);
+
+    // Set the night mode times
+    document.getElementById('dimmerstart').value = data.dimstart;
+    document.getElementById('dimmerend').value = data.dimend;
+
+    // Set the debug mode advanced option
+    document.getElementById('debug').checked = data.debug;
+
+    // Clear the error readout
+    $('.error-message span').text(' ');
+
+    // Auto-reload data in 120 seconds
+    setTimeout(function() {
+      getState(updateReadout);
+    }, 120000);
+  }
+
+  function setDimUI(state) {
+      $('#dimmer-action').text(state ? 'Disable Night Mode' : 'Enable Night Mode');
+      $('.dimstatus span').text(state ? 'Night Mode Enabled' : 'Night Mode Disabled');
+  }
+
+  function getState(callback) {
+    // Get the data from the device
+    $.ajax({
+      url : agenturl + '/dimmer',
+      type: 'GET',
+      success : function(response) {
+        response = JSON.parse(response);
+        if (callback && ('temp' in response)) {
+          callback(response);
+        }
+      },
+      cache: false
+    });
+  }
+
+  function setTime(start, end) {
+    // Set the night mode times
+    $.ajax({
+      url : agenturl + '/dimmer',
+      type: 'POST',
+      data: JSON.stringify({ 'dimstart' : start, 'dimend' : end }),
+      success : function(response) {
+        clearTimeout(timer);
+
+        var modal = document.getElementById('confirmModal');
+        modal.style.display = 'block';
+
+        timer = setTimeout(function() {
+          modal.style.display = 'none';
+        }, 6000);
+
+        window.onclick = function(event) {
+          if (event.target == modal) {
+            clearTimeout(timer);
+            modal.style.display = 'none';
+          }
+        };
+
+        getState(updateReadout);
+      },
+      cache: false
+    });
+  }
+
+  function setState(aState) {
+    // Enable/disable night mode
+    $.ajax({
+      url : agenturl + '/dimmer',
+      type: 'POST',
+      data: JSON.stringify({ 'enabled' : aState }),
+      success : function(response) {
+        clearTimeout(timer);
+
+        var modal = document.getElementById('enableModal');
+        $('.mtext span').text(aState ? 'Night mode enabled' : 'Night mode disabled');
+        modal.style.display = 'block';
+
+        timer = setTimeout(function() {
+          modal.style.display = 'none';
+        }, 6000);
+
+        window.onclick = function(event) {
+          if (event.target == modal) {
+            clearTimeout(timer);
+            modal.style.display = 'none';
+          }
+        };
+
+        getState(updateReadout);
+      },
+      cache: false
+    });
+  }
+
+  function setDebug() {
+    // Tell the device to enter or leave debug mode
+    $.ajax({
+      url : agenturl + '/debug',
+      type: 'POST',
+      data: JSON.stringify({ 'debug' : document.getElementById('debug').checked }),
+      cache: false
+    });
+  }
+
+  function doAdvance() {
+    // Tell the device to advance its clock
+    $.ajax({
+      url : agenturl + '/dimmer',
+      type: 'POST',
+      data: JSON.stringify({ 'advance' : true }),
+      success: function(response) {
+        clearTimeout(timer);
+
+        var modal = document.getElementById('advanceModal');
+        modal.style.display = 'block';
+
+        timer = setTimeout(function() {
+          modal.style.display = 'none';
+        }, 6000);
+
+        window.onclick = function(event) {
+          if (event.target == modal) {
+            clearTimeout(timer);
+            modal.style.display = 'none';
+          }
+        };
+
+        getState(updateReadout);
+      },
+      cache: false
+    });
+  }
+
+  function doReset() {
+    // Tell the device to reset itself
+    $.ajax({
+      url : agenturl + '/reset',
+      type: 'POST',
+      data: JSON.stringify({ 'reset' : true }),
+      success: function(response) {
+        getState(updateReadout);
+      },
+      cache: false
+    });
+  }
+  </script>
+</body>
+</html>
