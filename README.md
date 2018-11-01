@@ -1,4 +1,4 @@
-# HomeWeather 2.6 #
+# HomeWeather 2.6.1 #
 
 This software powers a home weather station based on the Electric Imp Platform.
 
@@ -38,7 +38,10 @@ The Weather Station has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes ##
 
-- 2.6 &mdash; *September 27, 2018*
+- 2.6.1 &mdash; *1 November 2018*
+    - Update to [Bootstrap 4.1.3](https://getbootstrap.com/)
+    - Update other dependencies
+- 2.6.0 &mdash; *27 September 27 2018*
     - Update to [Bootstrap 4.1.1](https://getbootstrap.com/)
         - Update Web UI based on Bootstrap
         - Separate out Web UI into own file for clarity
@@ -48,18 +51,18 @@ The Weather Station has its own, web-based control UI, accessed at the agent URL
     - Update to [JQuery 3.3.1](https://jquery.com)
     - Prevent Ajax XHR caching
     - Stop DarkSky requests busting the limit
-- 2.5
+- 2.5.0
     - Assorted tweaks and generally bringing everything up to date
-- 2.4
+- 2.4.0
     - Add light rain icon
     - Improve UI
     - Remove UI version number
     - Use generic boot message code
-- 2.3
+- 2.3.0
     - Remove Build API integration
     - Reworked web UI
     - Add device boot message
-- 2.2
+- 2.2.0
     - Initial re-release
 
 ## Licence ##
