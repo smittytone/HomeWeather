@@ -18,7 +18,7 @@ const LED_GREEN = 3;
 const DISPLAY_ON = 0xFF;
 const DISPLAY_OFF = 0x00;
 const RECONNECT_TIMEOUT = 30;
-const RECONNECT_DELAY = 60;
+const RECONNECT_DELAY = 61;
 const SWITCH_TIME = 2;
 
 
@@ -292,7 +292,7 @@ function setIcons() {
 
 function displayDisconnected() {
     // Put 'dISC' or 'COnn' onto the segment display to indicate status
-    if (isConnecting) {
+    if (!isConnecting) {
         // 'dISC'
         segment.writeChar(0, 0x5E, false);
         segment.writeChar(1, 0x06, false);
@@ -303,7 +303,7 @@ function displayDisconnected() {
         segment.writeChar(0, 0x39, false);
         segment.writeChar(1, 0x3F, false);
         segment.writeChar(3, 0x37, false);
-        segment.writeChar(4, 0x39, false);
+        segment.writeChar(4, 0x37, false);
     }
     segment.updateDisplay();
 }
@@ -311,7 +311,7 @@ function displayDisconnected() {
 // OFFLINE OPERATION FUNCTIONS
 function discHandler(event) {
     // Called if the server connection is broken or re-established
-    if ("message" in event && debug) server.log("Disconnection Manager: " + event.message);
+    if ("message" in event && debug) server.log("Connection Manager: " + event.message);
 
     if ("type" in event) {
         if (event.type == "disconnected") {
