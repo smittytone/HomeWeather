@@ -1,9 +1,9 @@
 // Home Weather - wall-mount weather Station
-// Copyright Tony Smith, 2015-2018
+// Copyright Tony Smith, 2015-2019
 
 // IMPORTS
 #require "DarkSky.class.nut:1.0.1"
-#require "Rocky.class.nut:2.0.1"
+#require "Rocky.class.nut:2.0.2"
 #import "../Location/location.class.nut"
 
 // CONSTANTS

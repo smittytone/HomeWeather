@@ -1,5 +1,5 @@
 // Home Weather - wall-mount weather Station
-// Copyright Tony Smith, 2015-2018
+// Copyright Tony Smith, 2015-2019
 
 // IMPORTS
 #import "../generic/utilities.nut"
