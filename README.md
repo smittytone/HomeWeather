@@ -1,4 +1,4 @@
-# HomeWeather 2.6.1 #
+# HomeWeather 2.6.2 #
 
 This software powers a home weather station based on the Electric Imp Platform.
 
@@ -38,6 +38,8 @@ The Weather Station has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes ##
 
+- 2.6.2 &mdash; *11 February 2019*
+    - Update dependencies
 - 2.6.1 &mdash; *1 November 2018*
     - Update to [Bootstrap 4.1.3](https://getbootstrap.com/)
     - Update other dependencies
