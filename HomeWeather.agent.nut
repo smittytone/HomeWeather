@@ -26,16 +26,16 @@ local api = null;
 local savedData = null;
 local locator = null;
 local location = null;
-local debug = false;
+local settings = null;
 local syncFlag = false;
 local darkSkyCount = 0;
-local settings = {};
+
 
 // WEATHER FUNCTIONS
 function getForecast() {
     // Request the weather data from Forecast.io asynchronously
     if (location != null && darkSkyCount < 990) {
-        applog("Requesting a forecast");
+        appLog("Requesting a forecast");
         forecaster.forecastRequest(location.longitude, location.latitude, forecastCallback);
     }
 
@@ -45,9 +45,9 @@ function getForecast() {
 
 function forecastCallback(err, data) {
     // Decode the JSON-format data from forecast.io (error thrown if invalid)
-    if (err) apperror(err);
+    if (err) appError(err);
     if (data) {
-        applog("Weather forecast data received from DarkSky");
+        appLog("Weather forecast data received from DarkSky");
         if ("hourly" in data) {
             if ("data" in data.hourly) {
                 // Get second item in array: this is the weather one hour from now
@@ -88,27 +88,27 @@ function forecastCallback(err, data) {
                 sendData.rain <- item.precipProbability;
                 device.send("homeweather.show.forecast", sendData);
                 savedData = sendData;
-                applog("Forecast: " + sendData.cast + ". Temperature: " + sendData.temp + "°C. Chance of rain: " + (sendData.rain * 100) + "%");
+                appLog("Forecast: " + sendData.cast + ". Temperature: " + sendData.temp + "°C. Chance of rain: " + (sendData.rain * 100) + "%");
             }
         }
 
         if ("callCount" in data) {
-            applog("Current Forecast API call tally: " + data.callCount + "/1000");
+            appLog("Current Forecast API call tally: " + data.callCount + "/1000");
             darkSkyCount = data.callCount;
         }
     }
 
     // Get the next forecast in an 'FORECAST_REFRESH' minutes' time
-    if (nextForecastTimer) imp.cancelwakeup(nextForecastTimer);
+    if (nextForecastTimer != null) imp.cancelwakeup(nextForecastTimer);
     nextForecastTimer = imp.wakeup(FORECAST_REFRESH, getForecast);
 }
 
 
 // INITIALISATION FUNCTIONS
-function deviceReady(dummy) {
+function deviceIsReady(dummy) {
     // This is called ONLY by the device via agent.send() when it starts
     // or by the agent itself after an agent migration/restart IF the device is already connected
-    if (agentRestartTimer) {
+    if (agentRestartTimer != null) {
         // Agent started less than RESTART_TIMEOUT seconds ago
         imp.cancelwakeup(agentRestartTimer);
         agentRestartTimer = null;
@@ -131,17 +131,19 @@ function deviceReady(dummy) {
 
             if (!("error" in location)) {
                 // Start the forecasting loop
-                if (debug) applog("Co-ordinates: " + location.longitude + ", " + location.latitude);
+                appLog("Co-ordinates: " + location.longitude + ", " + location.latitude);
                 getForecast();
             } else {
                 // Device's location not obtained
-                if (debug) apperror(location.error);
+                appError(location.error);
 
                 // Clear 'location' to force the code to try to get it again
                 location = null;
 
                 // Check again in LOCATION_RETRY seconds
-                imp.wakeup(LOCATION_RETRY, function() { deviceReady(true); });
+                imp.wakeup(LOCATION_RETRY, function() { 
+                    deviceIsReady(true);
+                });
             }
         });
     }
@@ -158,21 +160,19 @@ function resetSettings() {
     settings.dimend <- 7;
     settings.offatnight <- false;
     settings.debug <- false;
-    debug = false;
 
     // Save the new table
-    local result = server.save(settings);
-    if (result != 0) apperror("Settings could not be saved");
+    server.save(settings);
 }
 
 
-// MISC FUNCTIONS
-function applog(message) {
-    if (debug) server.log(message);
+// LOGGING FUNCTIONS
+function appLog(message) {
+    if (settings.debug) server.log(message);
 }
 
-function apperror(message) {
-    if (debug) server.error(message);
+function appError(message) {
+    if (settings.debug) server.error(message);
 }
 
 
@@ -192,17 +192,20 @@ forecaster.setLanguage("en");
 // Register the function to call when the device asks for a forecast
 // Once this request has been successfully processed, the agent will
 // automatically request updates every 15 minutes
-device.on("homeweather.get.forecast", deviceReady);
+device.on("homeweather.get.forecast", deviceIsReady);
 
 // Manage app settings
 settings = server.load();
 
 if (settings.len() == 0) {
     // No settings saved so set the defaults
-    applog("First run - applying default settings");
+    appLog("First run - applying default settings");
     resetSettings();
 } else {
-    if ("debug" in settings) debug = settings.debug;
+    if (!("debug" in settings)) {
+        settings.debug <- false;
+        server.save(settings);
+    }
 }
 
 // Set up the UI API
@@ -239,7 +242,7 @@ api.post("/dimmer", function(context) {
     try {
         data = http.jsondecode(context.req.rawbody);
     } catch (err) {
-        apperror(err);
+        appError(err);
         context.send(400, "Bad data posted");
         return;
     }
@@ -256,7 +259,7 @@ api.post("/dimmer", function(context) {
         state = data.enabled;
         settings.offatnight = state;
         device.send("homeweather.set.offatnight", state);
-        applog(state ? "Nighttime dimmer enabled" : "Nighttime dimmer disabled");
+        appLog(state ? "Nighttime dimmer enabled" : "Nighttime dimmer disabled");
     }
 
     if ("advance" in data) {
@@ -264,7 +267,7 @@ api.post("/dimmer", function(context) {
         // the LEDs are always turned on
         if (settings.offatnight) {
             device.send("homeweather.set.advance", true);
-            applog("Timer advanced");
+            appLog("Timer advanced");
             context.send(200, "Timer advanced");
             return;
         }
@@ -298,13 +301,12 @@ api.post("/dimmer", function(context) {
             // ... and record them here
             settings.dimstart = start;
             settings.dimend = end;
-            applog("Setting nighttime dimmer start to " + start + ", end to " + end);
+            appLog("Setting nighttime dimmer start to " + start + ", end to " + end);
         }
 
         context.send(202, "Nighttime dimming setting(s) applied");
 
-        local result = server.save(settings);
-        if (result != 0) apperror("Could not save settings (code: " + result + ")");
+        server.save(settings);
     }
 });
 
@@ -312,25 +314,18 @@ api.post("/debug", function(context) {
     try {
         local data = http.jsondecode(context.req.rawbody);
         if ("debug" in data) {
-            debug = data.debug;
-            if (debug) {
-                applog("Debug enabled");
-            } else {
-                applog("Debug disabled");
-            }
-
-            device.send("homeweather.set.debug", debug);
-            settings.debug = debug;
-            local result = server.save(settings);
-            if (result != 0) apperror("Could not save settings (code: " + result + ")");
+            appLog(data.debug ? "Debug enabled" : "Debug disabled");
+            device.send("homeweather.set.debug", data.debug);
+            settings.debug = data.debug;
+            server.save(settings);
         }
     } catch (err) {
-        apperror(err);
+        appError(err);
         context.send(400, "Bad data posted");
         return;
     }
 
-    context.send(200, (debug ? "Debug on" : "Debug off"));
+    context.send(200, (settings.debug ? "Debug on" : "Debug off"));
 });
 
 api.post("/reset", function(context) {
@@ -339,10 +334,10 @@ api.post("/reset", function(context) {
         if ("reset" in data) {
             if (data.reset) {
                 // Perform the reset
-                applog("Resetting Weather Station");
+                appLog("Resetting Weather Station");
                 resetSettings();
 
-                // Update the device
+                // Update the device with default settings
                 device.send("homeweather.set.offatnight", false);
                 device.send("homeweather.set.dim.start", settings.dimstart);
                 device.send("homeweather.set.dim.end", settings.dimend);
@@ -350,12 +345,12 @@ api.post("/reset", function(context) {
             }
         }
     } catch (err) {
-        apperror(err);
+        appError(err);
         context.send(400, "Bad data posted");
         return;
     }
 
-    context.send(200, (debug ? "Debug on" : "Debug off"));
+    context.send(200, (settings.debug ? "Debug on" : "Debug off"));
 });
 
 // GET at /controller/info returns app UUID
@@ -377,9 +372,9 @@ api.get("/controller/state", function(context) {
 agentRestartTimer = imp.wakeup(RESTART_TIMEOUT, function() {
     agentRestartTimer = null;
     if (!syncFlag && device.isconnected()) {
-        // Device is online so call 'deviceReady()'
-        applog("Recommencing forecasting due to agent restart");
-        deviceReady(true);
+        // Device is online so call 'deviceIsReady()'
+        appLog("Recommencing forecasting due to agent restart");
+        deviceIsReady(true);
     }
     // Otherwise device is not online, so the agent does nothing but wait for it to come back
 });
