@@ -260,16 +260,18 @@ function displayIcon(data) {
     matrix.displayLine(data.cast);
 
     local icon = null;
-	try {
-    	// Point 'icon' at the indicated icon table entry
-    	icon = iconset[data.icon];
+	
+    // Use a 'try... catch' in case the table 'iconset' has no key
+    // that matches the string 'data.icon' (choose 'none' if that's the case)
+    try {
+        icon = iconset[data.icon];
     } catch (error) {
-    	// 'data.icon' doesn't match a known icon table entry
-    	icon = iconset[none];
+        icon = iconset.none;
     }
 
     // Display the weather icon
-    matrix.displayIcon(icon);
+    //matrix.displayIcon(icon);
+    matrix.displayCharacter(icon);
 }
 
 function setIcons() {
@@ -347,16 +349,46 @@ hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
 matrix = HT16K33Matrix(hardware.i2c89, 0x70, true);
 matrix.init(1, 3);
 
+// Set up weather icons using user-definable characters
+matrix.defineCharacter(0, "\x89\x42\x18\xBC\x3D\x18\x42\x91");
+matrix.defineCharacter(1, "\x8C\x5E\x1E\x5F\x3F\x9F\x5E\x0C");
+matrix.defineCharacter(2, "\x8C\x52\x12\x51\x31\x91\x52\x0C");
+matrix.defineCharacter(3, "\x14\x49\x2A\x1C\x1C\x2A\x49\x14");
+matrix.defineCharacter(4, "\x4C\xBE\x5E\xBF\x5F\xBF\x5E\xAC");
+matrix.defineCharacter(5, "\x14\x14\x14\x14\x14\x55\x55\x22");
+matrix.defineCharacter(6, "\x55\xAA\x55\xAA\x55\xAA\x55\xAA");
+matrix.defineCharacter(7, "\x0C\x1E\x1E\x1F\x1F\x1F\x1E\x0C");
+matrix.defineCharacter(8, "\x0C\x12\x12\x11\x11\x11\x12\x0C");
+matrix.defineCharacter(9, "\x00\x00\x00\xF0\x1C\x07\x00\x00");
+matrix.defineCharacter(10, "\x00\x02\x36\x7D\xDD\x8D\x06\x02");
+matrix.defineCharacter(11, "\x3C\x42\x81\xC3\xFF\xFF\x7E\x3C");
+matrix.defineCharacter(12, "\x00\x00\x02\xB9\x09\x06\x00\x00");
+
 // Set up the segment display
 segment = HT16K33Segment(hardware.i2c89, 0x72);
 segment.init(16, 1, false);
 
 // Set up the bar
-bar = HT16K33Bargraph(hardware.i2c89, 0x74, true);
+bar = HT16K33Bargraph(hardware.i2c89, 0x74);
 bar.init(1, false);
 
 // Load weather icons
-setIcons();
+//setIcons();
+// Set up a table to map incoming weather condition names
+// (eg. "clearday") to user-definable character Ascii values
+iconset.clearday <-     0;
+iconset.rain <-         1;
+iconset.lightrain <-    2;
+iconset.snow <-         3;
+iconset.sleet <-        4;
+iconset.wind <-         5;
+iconset.fog <-          6;
+iconset.cloudy <-       7;
+iconset.partlycloudy <- 8;
+iconset.thunderstorm <- 9;
+iconset.tornado <-      10;
+iconset.clearnight <-   11;
+iconset.none <-         12;
 
 // Set up agent interaction
 agent.on("homeweather.show.forecast", displayWeather);
