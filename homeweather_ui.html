@@ -234,41 +234,50 @@
 
     function setTime(start, end) {
         // Set the night mode times
-        $.ajax({
-            url: agenturl + '/dimmer',
-            type: 'POST',
-            cache: false,
-            data: JSON.stringify({ 'dimstart' : start, 'dimend' : end }),
-            success : function(response) {
-                setModal('confirmModal');
-            }
-        });
+        doPost('/dimmer', 
+               { 'dimstart' : start, 'dimend' : end }, 
+               function(response) { setModal('confirmModal'); });
     }
 
     function setState(aState) {
         // Enable/disable night mode
-        $.ajax({
-            url: agenturl + '/dimmer',
-            type: 'POST',
-            cache: false,
-            data: JSON.stringify({ 'enabled' : aState }),
-            success : function(response) {
-                $('.mtext span').text(aState ? 'Night mode enabled' : 'Night mode disabled');
-                setModal('enableModal');
-            }
-        });
+        doPost('/dimmer', 
+               { 'enabled' : aState }, 
+               function(response) { 
+                   $('.mtext span').text(aState ? 'Night mode enabled' : 'Night mode disabled');
+                    setModal('enableModal'); 
+                });
     }
 
     function doAdvance() {
         // Tell the device to advance its clock
+        doPost('/dimmer', 
+               { 'advance' : true }, 
+               function(response) { setModal('advanceModal'); });
+    }
+
+    function setDebug() {
+        // Tell the device to enter or leave debug mode
+        doPost('/debug', 
+               {'debug' : document.getElementById('debug').checked}, 
+               null);
+    }
+
+    function doReset() {
+        // Tell the device to reset itself
+        doPost('/reset', 
+               {'reset' : true}, 
+               null);
+    }
+
+    function doPost(path, data, successFunc) {
+        if (successFunc == null) successFunc = function(response) { getState(updateReadout); }
         $.ajax({
-            url: agenturl + '/dimmer',
+            url: agenturl + path,
             type: 'POST',
             cache: false,
-            data: JSON.stringify({ 'advance' : true }),
-            success: function(response) {
-                setModal('advanceModal');
-            }
+            data: JSON.stringify(data),
+            success: successFunc
         });
     }
 
@@ -290,28 +299,6 @@
         };
 
         getState(updateReadout);
-    }
-    
-    function setDebug() {
-        // Tell the device to enter or leave debug mode
-        doPost('/debug', {'debug' : document.getElementById('debug').checked});
-    }
-
-    function doReset() {
-        // Tell the device to reset itself
-        doPost('/reset', {'reset' : true});
-    }
-
-    function doPost(endpoint, data) {
-        $.ajax({
-            url: agenturl + endpoint,
-            type: 'POST',
-            cache: false,
-            data: JSON.stringify(data),
-            success: function(response) {
-                getState(updateReadout);
-            }
-        });
     }
     </script>
 </body>
