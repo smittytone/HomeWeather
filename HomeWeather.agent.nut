@@ -225,7 +225,7 @@ api.get("/dimmer", function(context) {
     data.debug <- settings.debug;
 
     if (savedData != null) {
-        data.temp <- savedData.temp;
+        data.temp <- format("%.1f", savedData.temp.tofloat());
         data.outlook <- savedData.cast;
     } else {
         data.error <- "Forecast not yet available - try again soon";

@@ -40,7 +40,7 @@ local isAdvanceSet = false;
 local timeFlag = true;
 local isDisconnected = false;
 local isConnecting = false;
-local debug = true;
+local debug = false;
 
 
 // DISPLAY FUNCTIONS
@@ -169,7 +169,7 @@ function displayTemp(data) {
                 segment.writeNumber(0, (num / 1000).tointeger());
                 num = num - ((num / 1000).tointeger() * 1000);
             } else {
-                segment.writeNumber(0, 16);
+                segment.writeGlyph(0, 0);
             }
 
             if (num > 99) {
@@ -188,7 +188,7 @@ function displayTemp(data) {
     }
 
     // Add the degree symbol and clear the colon
-    segment.writeChar(4, 0x63).setColon(false).updateDisplay();
+    segment.writeGlyph(4, 0x63).setColon(false).updateDisplay();
 }
 
 function displayTime() {
@@ -199,7 +199,7 @@ function displayTime() {
     local m = 0;
 
     if (h < 10) {
-        segment.writeNumber(0, 16, false);
+        segment.writeGlyph(0, 0, false);
         segment.writeNumber(1, h, false);
     } else if (h > 9 && h < 20) {
         segment.writeNumber(0, 1, false)
@@ -260,7 +260,6 @@ function displayIcon(data) {
     matrix.displayLine(data.cast);
 
     local icon = null;
-	
     // Use a 'try... catch' in case the table 'iconset' has no key
     // that matches the string 'data.icon' (choose 'none' if that's the case)
     try {
@@ -346,9 +345,10 @@ locator = Location();
 
 // Set up the matrix display
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
-matrix = HT16K33Matrix(hardware.i2c89, 0x70, true);
+matrix = HT16K33Matrix(hardware.i2c89, 0x70);
 matrix.init(1, 3);
 
+// ADDED IN 2.7.0
 // Set up weather icons using user-definable characters
 matrix.defineCharacter(0, "\x89\x42\x18\xBC\x3D\x18\x42\x91");
 matrix.defineCharacter(1, "\x8C\x5E\x1E\x5F\x3F\x9F\x5E\x0C");
@@ -374,21 +374,23 @@ bar.init(1, false);
 
 // Load weather icons
 //setIcons();
+// ADDED IN 2.7.0
 // Set up a table to map incoming weather condition names
 // (eg. "clearday") to user-definable character Ascii values
-iconset.clearday <-     0;
-iconset.rain <-         1;
-iconset.lightrain <-    2;
-iconset.snow <-         3;
-iconset.sleet <-        4;
-iconset.wind <-         5;
-iconset.fog <-          6;
-iconset.cloudy <-       7;
+iconset = {};
+iconset.clearday     <- 0;
+iconset.rain         <- 1;
+iconset.lightrain    <- 2;
+iconset.snow         <- 3;
+iconset.sleet        <- 4;
+iconset.wind         <- 5;
+iconset.fog          <- 6;
+iconset.cloudy       <- 7;
 iconset.partlycloudy <- 8;
 iconset.thunderstorm <- 9;
-iconset.tornado <-      10;
-iconset.clearnight <-   11;
-iconset.none <-         12;
+iconset.tornado      <- 10;
+iconset.clearnight   <- 11;
+iconset.none         <- 12;
 
 // Set up agent interaction
 agent.on("homeweather.show.forecast", displayWeather);

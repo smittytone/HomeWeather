@@ -71,32 +71,31 @@
                 <!-- Controls and Settings Row -->
                 <div class='row'>
                     <div class='col'>
-                        <!-- Controls Sub-row-->
-                        <div class='row' style='font-family:Abel;' align='center'>
-                            <div class='col-6' align='right'>
-                                <button class='btn btn-secondary abutton' type='submit' id='dimmer-advance'>Advance Clock</button>
-                            </div>
-                            <div class='col-6' align='left'>
-                                <button class='btn btn-secondary ebutton' type='submit' id='dimmer-enable'>Disable Night Mode</button>
-                            </div>
-                        </div>
                         <!-- Night Mode Settings Sub-row-->
                         <div class='row'>
                             <div class='col'>
-                                <p>&nbsp;</p>
                                 <h4 class='dimstatus text-center'><span>Night Mode Enabled</span><br />&nbsp;</h4>
+                                <div class='row' style='font-family:Abel;' align='center'>
+                                    <div class='col-6' align='right'>
+                                        <button class='btn btn-secondary abutton' type='submit' id='dimmer-advance'>Advance Clock</button>
+                                    </div>
+                                    <div class='col-6' align='left'>
+                                        <button class='btn btn-secondary ebutton' type='submit' id='dimmer-enable'>Disable Night Mode</button>
+                                    </div>
+                                </div>
+                                <p>&nbsp;</p>
                                 <div class='form-group row' style='font-family:Abel;'>
                                     <label for='colFormLabel' class='col-7 col-form-label' align='right' style='color:black'>Night Mode Start Time (hour)</label>
                                     <div class='col-5' align='left'>
                                         <input type='text' class='form-control' id='dimmerstart' min='0' max='22'
-                                        style='width:42px;color:CornflowerBlue' placeholder='0'>
+                                        style='color:CornflowerBlue' placeholder='0'>
                                     </div>
                                 </div>
                                 <div class='form-group row' style='font-family:Abel;'>
                                     <label for='colFormLabel' class='col-7 col-form-label' align='right' style='color:black'>Night Mode End Time (hour)</label>
                                     <div class='col-5' align='left'>
                                         <input type='text' class='form-control' id='dimmerend' min='1' max='23'
-                                        style='width:42px;color:CornflowerBlue' placeholder='23'>
+                                        style=' color:CornflowerBlue' placeholder='23'>
                                     </div>
                                 </div>
                                 <p class='text-center'><small>Set the on and off times in the 24-hour clock format</small></p>
