@@ -27,12 +27,16 @@
         p.showhide {cursor: pointer}
         hr {border-color: #6C747E;}
         @media only screen and (max-width: 640px) {
-            .container {padding: 5px}
-            .uicontent {border: 0px}
+            .container {padding: 0px;width: 100%%; margin: 0%%;}
+            .uicontent {border: 0px;width: 100%%; margin: 0%%;}
             .col-2 {max-width: 0%%; flex: 0 0 0%%}
             .col-8 {max-width: 100%%; flex: 0 0 100%%}
-            .ebutton {width: 150px;}
-            .abutton {width: 150px;}
+            .ebutton {width: 142px;}
+            .abutton {width: 142px;}
+        }
+        @media only screen and (max-width: 330px) {
+            .ebutton {width: 120px;}
+            .abutton {width: 120px;}
         }
     </style>
 </head>
