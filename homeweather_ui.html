@@ -3,7 +3,7 @@
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css'>
+    <link rel='stylesheet' href='https://netdna.bootstrapcdn.com/bootstrap/4.3.0/css/bootstrap.min.css'>
     <link href='https://fonts.googleapis.com/css?family=Abel|Oswald|Audiowide' rel='stylesheet'>
     <link rel='apple-touch-icon' href='https://smittytone.github.io/images/ati-wstation.png'>
     <link rel='shortcut icon' href='https://smittytone.github.io/images/ico-wstation.ico'>
@@ -18,6 +18,7 @@
                            border: 2px solid #86D546; width: 50%%}
         .uicontent {border: 2px solid #6C747E}
         .container {padding: 20px}
+        .advancedsettings {background-color:#6C747E; width: 400px;}
         .btn-secondary {width: 200px;}
         body {background-color: #AEBCCE;}
         p {color: black; font-family: Abel}
@@ -31,12 +32,13 @@
             .uicontent {border: 0px;width: 100%%; margin: 0%%;}
             .col-2 {max-width: 0%%; flex: 0 0 0%%}
             .col-8 {max-width: 100%%; flex: 0 0 100%%}
-            .ebutton {width: 142px;}
-            .abutton {width: 142px;}
+            .ebutton {width: 146px;}
+            .abutton {width: 146px;}
+            .advancedsettings {width: 100%%;}
         }
-        @media only screen and (max-width: 330px) {
-            .ebutton {width: 120px;}
-            .abutton {width: 120px;}
+        @media only screen and (max-width: 340px) {
+            .ebutton {width: 140px;}
+            .abutton {width: 140px;}
         }
     </style>
 </head>
@@ -49,7 +51,7 @@
     </div>
     <div id='advanceModal' class='modal'>
         <div class='modal-content-ok'>
-            <h3 align='center' style='color: black; font-family: Abel'>Clock advanced</h3>
+            <h3 align='center' style='color: black; font-family: Abel'>Night mode timer advanced</h3>
         </div>
     </div>
     <div id='enableModal' class='modal'>
@@ -65,10 +67,10 @@
                 <div class='row' align='center'>
                     <div class='col'>
                         <h2>&nbsp;<br />Home Weather Station<br />&nbsp;</h2>
-                        <h4 class='temp-status'>Current Temperature: <span></span>&deg;C&nbsp;</h4>
-                        <h4 class='outlook-status'>Weather Outlook: <span></span></h4>
+                        <h4 class='temp-status'>Current Temperature: <span>TBD</span>&deg;C&nbsp;</h4>
+                        <h4 class='outlook-status'>Weather Outlook: <span>TBD</span></h4>
                         <p>Forecast updates automatically every two minutes</p>
-                        <p class='error-message'><i><span></span></i></p>
+                        <p class='error-message'><i><span>Connecting...</span></i></p>
                         <p><small>&nbsp;</small></p>
                     </div>
                 </div>
@@ -77,29 +79,30 @@
                     <div class='col'>
                         <!-- Night Mode Settings Sub-row-->
                         <div class='row'>
-                            <div class='col'>
-                                <h4 class='dimstatus text-center'><span>Night Mode Enabled</span><br />&nbsp;</h4>
+                            <div class='col-2'>&nbsp;</div>
+                            <div class='col-8'>
+                                <h4 class='dimstatus text-center'>Night Mode (<span>Disabled</span>)<br />&nbsp;</h4>
                                 <div class='row' style='font-family:Abel;' align='center'>
                                     <div class='col-6' align='right'>
-                                        <button class='btn btn-secondary abutton' type='submit' id='dimmer-advance'>Advance Clock</button>
+                                        <button class='btn btn-secondary abutton' type='submit' id='dimmer-advance'>Advance Timer</button>
                                     </div>
                                     <div class='col-6' align='left'>
-                                        <button class='btn btn-secondary ebutton' type='submit' id='dimmer-enable'>Disable Night Mode</button>
+                                        <button class='btn btn-secondary ebutton' type='submit' id='dimmer-enable'>Disable Mode</button>
                                     </div>
                                 </div>
                                 <p>&nbsp;</p>
                                 <div class='form-group row' style='font-family:Abel;'>
-                                    <label for='colFormLabel' class='col-7 col-form-label' align='right' style='color:black'>Night Mode Start Time (hour)</label>
-                                    <div class='col-5' align='left'>
+                                    <label for='colFormLabel' class='col-6 col-form-label' align='right' style='color:black'>Start Time (hour)</label>
+                                    <div class='col-6' align='left'>
                                         <input type='text' class='form-control' id='dimmerstart' min='0' max='22'
-                                        style='color:CornflowerBlue' placeholder='0'>
+                                        style='color:CornflowerBlue; width:100px' placeholder='0'>
                                     </div>
                                 </div>
                                 <div class='form-group row' style='font-family:Abel;'>
-                                    <label for='colFormLabel' class='col-7 col-form-label' align='right' style='color:black'>Night Mode End Time (hour)</label>
-                                    <div class='col-5' align='left'>
+                                    <label for='colFormLabel' class='col-6 col-form-label' align='right' style='color:black'>End Time (hour)</label>
+                                    <div class='col-6' align='left'>
                                         <input type='text' class='form-control' id='dimmerend' min='1' max='23'
-                                        style=' color:CornflowerBlue' placeholder='23'>
+                                        style=' color:CornflowerBlue; width:100px' placeholder='23'>
                                     </div>
                                 </div>
                                 <p class='text-center'><small>Set the on and off times in the 24-hour clock format</small></p>
@@ -107,15 +110,16 @@
                                     <button type='submit' class='btn btn-secondary btn-sm' id='dimmer-set'>Set Night Mode Times</button>
                                 </div>
                             </div>
+                            <div class='col-2'>&nbsp;</div>
                         </div>
                         <!-- Advanced Settings Sub-row-->
                         <div class='row' align='center'>
                             <div class='col-2'>&nbsp;</div>
                             <div class='col-8'>
                                 <p>&nbsp;</p>
-                                <div class='advancedsettings' style='background-color:#6C747E;width:400px;'>
+                                <div class='advancedsettings'>
                                     <p class='showhide' style='color:white'>Show Advanced Settings</p>
-                                    <div class='advanced'>
+                                    <div class='advanced' style='color:white'>
                                         <div class='debug-checkbox' style='color:white;font-family:Abel,sans-serif'>
                                             <small><input type='checkbox' name='debug' id='debug' value='debug'> Debug Mode</small><br />&nbsp;
                                         </div>
@@ -192,7 +196,7 @@
             $('.outlook-status span').text(data.outlook);
 
             // Clear the error readout
-            $('.error-message span').text(' ');
+            $('.error-message span').text('Your weather station is ' + (data.state ? 'online' : 'offline'));
         }
 
         // Set the 'enable' button text
@@ -213,8 +217,8 @@
     }
 
     function setDimUI(state) {
-        $('#dimmer-action').text(state ? 'Disable Night Mode' : 'Enable Night Mode');
-        $('.dimstatus span').text(state ? 'Night Mode Enabled' : 'Night Mode Disabled');
+        $('#dimmer-action').text(state ? 'Disable Mode' : 'Enable Mode');
+        $('.dimstatus span').text(state ? 'Enabled' : 'Disabled');
     }
 
     function getState(callback) {

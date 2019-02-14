@@ -1,15 +1,11 @@
 // Home Weather - wall-mount weather Station
 // Copyright Tony Smith, 2015-2019
 
-// IMPORTS
+// ********** IMPORTS **********
 #require "Rocky.class.nut:2.0.2"
 #import "../DarkSky/DarkSky.agent.lib.nut"
 #import "../Location/location.class.nut"
 
-// CONSTANTS
-const RESTART_TIMEOUT = 120;
-const FORECAST_REFRESH = 900;
-const LOCATION_RETRY = 60;
 // If you are NOT using Squinter or a similar tool, replace the #import statement below
 // with the contents of the named file (homeweather_ui.html)
 const HTML_STRING = @"
@@ -17,7 +13,13 @@ const HTML_STRING = @"
 ";
 
 
-// GLOBALS
+// ********** CONSTANTS **********
+const RESTART_TIMEOUT = 120;
+const FORECAST_REFRESH = 900;
+const LOCATION_RETRY = 60;
+
+
+// ********** GLOBALS **********
 local request = null;
 local forecaster = null;
 local nextForecastTimer = null;
@@ -31,7 +33,7 @@ local syncFlag = false;
 local darkSkyCount = 0;
 
 
-// WEATHER FUNCTIONS
+// ********** WEATHER FUNCTIONS **********
 function getForecast() {
     // Request the weather data from Forecast.io asynchronously
     if (location != null && darkSkyCount < 990) {
@@ -103,7 +105,7 @@ function forecastCallback(err, data) {
 }
 
 
-// INITIALISATION FUNCTIONS
+// ********** INITIALISATION FUNCTIONS **********
 function deviceIsReady(dummy) {
     // This is called ONLY by the device via agent.send() when it starts
     // or by the agent itself after an agent migration/restart IF the device is already connected
@@ -165,7 +167,7 @@ function resetSettings() {
 }
 
 
-// LOGGING FUNCTIONS
+// ********** LOGGING FUNCTIONS **********
 function appLog(message) {
     if (settings.debug) server.log(message);
 }
@@ -174,8 +176,20 @@ function appError(message) {
     if (settings.debug) server.error(message);
 }
 
+function debugAPI(context, next) {
+    // Display a UI API activity report
+    if (settings.debug) {
+        server.log("API received a request at " + time());
+        server.log("  VERB: " + context.req.method.toupper());
+        server.log("  PATH: " + context.req.path.tolower());
+        if (context.req.rawbody.len() > 0) server.log("  BODY: " + context.req.rawbody.tolower());
+    }
+    
+    // Invoke the next middleware
+    next();
+}
 
-// PROGRAM START
+// ********** RUNTIME START **********
 
 // If you are NOT using Squinter or a similar tool, comment out the following line...
 #import "~/Dropbox/Programming/Imp/Codes/homeweather.nut"
@@ -209,6 +223,19 @@ if (settings.len() == 0) {
 
 // Set up the UI API
 api = Rocky();
+api.use(debugAPI);
+
+// Set up UI access security: HTTPS only
+api.authorize(function(context) {
+    // Mandate HTTPS connections
+    if (context.getHeader("x-forwarded-proto") != "https") return false;
+    return true;
+});
+
+api.onUnauthorized(function(context) {
+    // Incorrect level of access security
+    context.send(401, "Insecure access forbidden");
+});
 
 api.get("/", function(context) {
     // Root request: just return the UI HTML
@@ -222,16 +249,16 @@ api.get("/dimmer", function(context) {
     data.dimstart <- settings.dimstart;
     data.dimend <- settings.dimend;
     data.debug <- settings.debug;
+    data.state <- device.isconnected();
 
     if (savedData != null) {
         data.temp <- format("%.1f", savedData.temp.tofloat());
         data.outlook <- savedData.cast;
     } else {
-        data.error <- "Forecast not yet available - try again soon";
+        data.error <- "Forecast not yet available";
     }
 
-    data = http.jsonencode(data);
-    context.send(200, data);
+    context.send(200, http.jsonencode(data));
 });
 
 api.post("/dimmer", function(context) {
