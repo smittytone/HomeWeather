@@ -2,8 +2,8 @@
 // Copyright Tony Smith, 2015-2019
 
 // IMPORTS
-#require "DarkSky.class.nut:1.0.1"
 #require "Rocky.class.nut:2.0.2"
+#import "../DarkSky/DarkSky.agent.lib.nut"
 #import "../Location/location.class.nut"
 
 // CONSTANTS
@@ -92,10 +92,9 @@ function forecastCallback(err, data) {
             }
         }
 
-        if ("callCount" in data) {
-            appLog("Current Forecast API call tally: " + data.callCount + "/1000");
-            darkSkyCount = data.callCount;
-        }
+        // Use Dark Sky 2.0.0's callCount property/method
+        appLog("Current Forecast API call tally: " + forecaster.callCount + "/1000 ");
+        darkSkyCount = forecaster.getCallCount();
     }
 
     // Get the next forecast in an 'FORECAST_REFRESH' minutes' time
