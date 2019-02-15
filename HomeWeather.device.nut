@@ -1,16 +1,18 @@
 // Home Weather - wall-mount weather Station
 // Copyright Tony Smith, 2015-2019
 
-// IMPORTS
-#import "../generic/utilities.nut"
-#import "../generic/disconnect.nut"
-#import "../Location/location.class.nut"
-#import "../ht16k33segment/ht16k33segment.class.nut"
-#import "../ht16k33matrix/ht16k33matrix.class.nut"
-#import "../ht16k33bargraph/ht16k33bargraph.class.nut"
+// ********** IMPORTS **********
+// If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
+// with the contents of the named file(s):
+#import "../generic/utilities.nut"                          // Source code: https://github.com/smittytone/generic
+#import "../generic/disconnect.nut"                         // Source code: https://github.com/smittytone/generic
+#import "../Location/location.class.nut"                    // Source code: https://github.com/smittytone/Location
+#import "../ht16k33segment/ht16k33segment.class.nut"        // Source code: https://github.com/smittytone/HT16K33Segment
+#import "../ht16k33matrix/ht16k33matrix.class.nut"          // Source code: https://github.com/smittytone/HT16K33Matrix
+#import "../ht16k33bargraph/ht16k33bargraph.class.nut"      // Source code: https://github.com/smittytone/HT16K33Bargraph
 
 
-// CONSTANTS
+// ********** CONSTANTS **********
 const LED_OFF = 0;
 const LED_RED = 1;
 const LED_AMBER = 2;
@@ -22,7 +24,7 @@ const RECONNECT_DELAY = 61;
 const SWITCH_TIME = 2;
 
 
-// GLOBALS
+// ********** GLOBAL VARIABLES **********
 local matrix = null;
 local segment = null;
 local bar = null;
@@ -43,7 +45,7 @@ local isConnecting = false;
 local debug = false;
 
 
-// DISPLAY FUNCTIONS
+// ********** DISPLAY FUNCTIONS **********
 function heartbeat() {
     // This function runs every 'SWITCH_TIME' seconds to manage the segment LED
     hbTimer = imp.wakeup(SWITCH_TIME, heartbeat);
@@ -309,7 +311,7 @@ function displayDisconnected() {
     segment.updateDisplay();
 }
 
-// OFFLINE OPERATION FUNCTIONS
+// ********** OFFLINE OPERATION FUNCTIONS **********
 function discHandler(event) {
     // Called if the server connection is broken or re-established
     if ("message" in event && debug) server.log("Connection Manager: " + event.message);
@@ -330,9 +332,13 @@ function discHandler(event) {
     }
 }
 
-// START OF PROGRAM
-// Load in generic boot message code (comment out if you're not using Squinter)
-#include "../generic/bootmessage.nut"
+
+// ********** RUNTIME START **********
+
+// Load in generic boot message code
+// If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
+// with the contents of the named file(s):
+#import "../generic/bootmessage.nut"        // Source code: https://github.com/smittytone/generic
 
 // Set up the disconnection manager
 disconnectionManager.eventCallback = discHandler;
@@ -373,7 +379,6 @@ bar = HT16K33Bargraph(hardware.i2c89, 0x74);
 bar.init(1, false);
 
 // Load weather icons
-//setIcons();
 // ADDED IN 2.7.0
 // Set up a table to map incoming weather condition names
 // (eg. "clearday") to user-definable character Ascii values
@@ -396,16 +401,19 @@ iconset.none         <- 12;
 agent.on("homeweather.show.forecast", displayWeather);
 
 agent.on("homeweather.set.dim.start", function(value) {
+    // Handle a message setting the night mode dimmer start time
     nightTime = value;
     if (debug) server.log("Display off time set to " + value);
 });
 
 agent.on("homeweather.set.dim.end", function(value) {
+    // Handle a message setting the night mode dimmer end time
     dayTime = value;
     if (debug) server.log("Display on time set to " + value);
 });
 
 agent.on("homeweather.set.offatnight", function(value) {
+    // Handle a message enabling or disabling the night mode dimmer
     isNight = value;
     if (debug) server.log("Night mode " + (value ? "enabled" : "disabled") + " on the device");
 });
@@ -419,11 +427,13 @@ agent.on("homeweather.set.advance", function(value) {
 });
 
 agent.on("homeweather.set.debug", function(value) {
+    // Handle a message enabling or disabling extra debug logging
     debug = value;
     server.log("Device debug messages " + (debug ? "enabled" : "disabled"));
 });
 
 agent.on("homeweather.set.settings", function(settings) {
+    // Handle a message sending the application settings
     nightTime = settings.dimstart;
     dayTime = settings.dimend;
     isNight = settings.offatnight;

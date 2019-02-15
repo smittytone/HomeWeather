@@ -3,14 +3,14 @@
 
 // ********** IMPORTS **********
 #require "Rocky.class.nut:2.0.2"
-#import "../DarkSky/DarkSky.agent.lib.nut"
-#import "../Location/location.class.nut"
 
-// If you are NOT using Squinter or a similar tool, replace the #import statement below
-// with the contents of the named file (homeweather_ui.html)
+// If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
+// with the contents of the named file(s):
+#import "../DarkSky/DarkSky.agent.lib.nut"
+#import "../Location/location.class.nut"        // Source code: https://github.com/smittytone/Location
 const HTML_STRING = @"
 #import "homeweather_ui.html"
-";
+";                                              // Source code: https://github.com/smittytone/HomeWeather
 
 
 // ********** CONSTANTS **********
@@ -150,7 +150,7 @@ function deviceIsReady(dummy) {
     }
 }
 
-function resetSettings() {
+function initialiseSettings() {
     // Reset the settings to the defaults
     // First clear the saved data in case the settings keys have changed
     server.save({});
@@ -179,10 +179,8 @@ function appError(message) {
 function debugAPI(context, next) {
     // Display a UI API activity report
     if (settings.debug) {
-        server.log("API received a request at " + time());
-        server.log("  VERB: " + context.req.method.toupper());
-        server.log("  PATH: " + context.req.path.tolower());
-        if (context.req.rawbody.len() > 0) server.log("  BODY: " + context.req.rawbody.tolower());
+        server.log("API received a request at " + time() + ": " + context.req.method.toupper() + " @ " + context.req.path.tolower());
+        if (context.req.rawbody.len() > 0) server.log("Request body: " + context.req.rawbody.tolower());
     }
     
     // Invoke the next middleware
@@ -213,7 +211,7 @@ settings = server.load();
 if (settings.len() == 0) {
     // No settings saved so set the defaults
     appLog("First run - applying default settings");
-    resetSettings();
+    initialiseSettings();
 } else {
     if (!("debug" in settings)) {
         settings.debug <- false;
@@ -237,13 +235,13 @@ api.onUnauthorized(function(context) {
     context.send(401, "Insecure access forbidden");
 });
 
+// GET to root: just return the UI HTML
 api.get("/", function(context) {
-    // Root request: just return the UI HTML
     context.send(200, format(HTML_STRING, http.agenturl()));
 });
 
+// GET to /dimmer: return the dimmer status
 api.get("/dimmer", function(context) {
-    // Handle request for night dimmer status
     local data = {};
     data.enabled <- settings.offatnight;
     data.dimstart <- settings.dimstart;
@@ -261,8 +259,8 @@ api.get("/dimmer", function(context) {
     context.send(200, http.jsonencode(data));
 });
 
+// POST to /dimmer : Apply a setting update
 api.post("/dimmer", function(context) {
-    // Apply setting for data from /dimmer endpoint
     local data;
 
     try {
@@ -336,6 +334,7 @@ api.post("/dimmer", function(context) {
     }
 });
 
+// POST to /debug : set the debugging mode
 api.post("/debug", function(context) {
     try {
         local data = http.jsondecode(context.req.rawbody);
@@ -354,6 +353,7 @@ api.post("/debug", function(context) {
     context.send(200, (settings.debug ? "Debug on" : "Debug off"));
 });
 
+// POST to /reset : reset the device
 api.post("/reset", function(context) {
     try {
         local data = http.jsondecode(context.req.rawbody);
@@ -361,7 +361,7 @@ api.post("/reset", function(context) {
             if (data.reset) {
                 // Perform the reset
                 appLog("Resetting Weather Station");
-                resetSettings();
+                initialiseSettings();
 
                 // Update the device with default settings
                 device.send("homeweather.set.offatnight", false);
