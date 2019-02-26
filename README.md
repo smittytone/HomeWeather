@@ -1,4 +1,4 @@
-# HomeWeather 2.6.2 #
+# HomeWeather 2.7.0 #
 
 This software powers a home weather station based on the Electric Imp Platform.
 

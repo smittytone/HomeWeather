@@ -7,10 +7,12 @@
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
 #import "../DarkSky/DarkSky.agent.lib.nut"
-#import "../Location/location.class.nut"        // Source code: https://github.com/smittytone/Location
+#import "../generic/simpleslack.nut"            // Source: https://github.com/smittytone/generic
+#import "../generic/crashReporter.nut"          // Source: https://github.com/smittytone/generic
+#import "../Location/location.class.nut"        // Source: https://github.com/smittytone/Location
 const HTML_STRING = @"
 #import "homeweather_ui.html"
-";                                              // Source code: https://github.com/smittytone/HomeWeather
+";                                              // Source: https://github.com/smittytone/HomeWeather
 
 
 // ********** CONSTANTS **********
@@ -123,7 +125,8 @@ function deviceIsReady(dummy) {
     if (location != null) {
         // Yes, so get a fresh forecast
         // NOTE this will be the case after device-only restarts
-        getForecast();
+        if (nextForecastTimer != null) imp.cancelwakeup(nextForecastTimer);
+        nextForecastTimer = imp.wakeup(0, getForecast);
     } else {
         // Get the device's location
         // NOTE this will the case after device+agent restarts
@@ -133,7 +136,8 @@ function deviceIsReady(dummy) {
             if (!("error" in location)) {
                 // Start the forecasting loop
                 appLog("Co-ordinates: " + location.longitude + ", " + location.latitude);
-                getForecast();
+                if (nextForecastTimer != null) imp.cancelwakeup(nextForecastTimer);
+                nextForecastTimer = imp.wakeup(0, getForecast);
             } else {
                 // Device's location not obtained
                 appError(location.error);
@@ -188,6 +192,9 @@ function debugAPI(context, next) {
 }
 
 // ********** RUNTIME START **********
+
+// Load up the crash reporter
+#import "~/Dropbox/Programming/Imp/codes/slack.nut"
 
 // If you are NOT using Squinter or a similar tool, comment out the following line...
 #import "~/Dropbox/Programming/Imp/Codes/homeweather.nut"

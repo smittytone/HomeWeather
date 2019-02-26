@@ -4,12 +4,13 @@
 // ********** IMPORTS **********
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
-#import "../generic/utilities.nut"                          // Source code: https://github.com/smittytone/generic
-#import "../generic/disconnect.nut"                         // Source code: https://github.com/smittytone/generic
-#import "../Location/location.class.nut"                    // Source code: https://github.com/smittytone/Location
-#import "../ht16k33segment/ht16k33segment.class.nut"        // Source code: https://github.com/smittytone/HT16K33Segment
-#import "../ht16k33matrix/ht16k33matrix.class.nut"          // Source code: https://github.com/smittytone/HT16K33Matrix
-#import "../ht16k33bargraph/ht16k33bargraph.class.nut"      // Source code: https://github.com/smittytone/HT16K33Bargraph
+#import "../generic/crashReporter.nut"                      // Source: https://github.com/smittytone/generic
+#import "../generic/utilities.nut"                          // Source: https://github.com/smittytone/generic
+#import "../generic/disconnect.nut"                         // Source: https://github.com/smittytone/generic
+#import "../Location/location.class.nut"                    // Source: https://github.com/smittytone/Location
+#import "../ht16k33segment/ht16k33segment.class.nut"        // Source: https://github.com/smittytone/HT16K33Segment
+#import "../ht16k33matrix/ht16k33matrix.class.nut"          // Source: https://github.com/smittytone/HT16K33Matrix
+#import "../ht16k33bargraph/ht16k33bargraph.class.nut"      // Source: https://github.com/smittytone/HT16K33Bargraph
 
 
 // ********** CONSTANTS **********
@@ -335,6 +336,10 @@ function discHandler(event) {
 
 // ********** RUNTIME START **********
 
+// ADDED IN 2.7.0
+// Set up the crash reporter
+crashReporter.init();
+
 // Load in generic boot message code
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
@@ -370,16 +375,6 @@ matrix.defineCharacter(10, "\x00\x02\x36\x7D\xDD\x8D\x06\x02");
 matrix.defineCharacter(11, "\x3C\x42\x81\xC3\xFF\xFF\x7E\x3C");
 matrix.defineCharacter(12, "\x00\x00\x02\xB9\x09\x06\x00\x00");
 
-// Set up the segment display
-segment = HT16K33Segment(hardware.i2c89, 0x72);
-segment.init(16, 1, false);
-
-// Set up the bar
-bar = HT16K33Bargraph(hardware.i2c89, 0x74);
-bar.init(1, false);
-
-// Load weather icons
-// ADDED IN 2.7.0
 // Set up a table to map incoming weather condition names
 // (eg. "clearday") to user-definable character Ascii values
 iconset = {};
@@ -396,6 +391,14 @@ iconset.thunderstorm <- 9;
 iconset.tornado      <- 10;
 iconset.clearnight   <- 11;
 iconset.none         <- 12;
+
+// Set up the segment display
+segment = HT16K33Segment(hardware.i2c89, 0x72);
+segment.init(16, 1, false);
+
+// Set up the bar
+bar = HT16K33Bargraph(hardware.i2c89, 0x74);
+bar.init(1, false);
 
 // Set up agent interaction
 agent.on("homeweather.show.forecast", displayWeather);
