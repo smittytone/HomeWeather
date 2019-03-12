@@ -38,7 +38,7 @@ The Weather Station has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes ##
 
-- 2.7.0 &mdash; *unreleased*
+- 2.7.0 &mdash; *12 March 2019*
     - Update web UI code
     - Update dependencies
 - 2.6.1 &mdash; *1 November 2018*

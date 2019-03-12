@@ -3,10 +3,10 @@
 
 // ********** IMPORTS **********
 #require "Rocky.class.nut:2.0.2"
+#require "DarkSky.class.nut:1.0.1"
 
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
-#import "../DarkSky/DarkSky.agent.lib.nut"
 #import "../generic/simpleslack.nut"            // Source: https://github.com/smittytone/generic
 #import "../generic/crashReporter.nut"          // Source: https://github.com/smittytone/generic
 #import "../Location/location.class.nut"        // Source: https://github.com/smittytone/Location
