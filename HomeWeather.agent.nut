@@ -3,7 +3,7 @@
 
 // ********** IMPORTS **********
 #require "Rocky.class.nut:2.0.2"
-#require "DarkSky.class.nut:1.0.1"
+#require "DarkSky.agent.lib.nut:2.0.0"
 
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):

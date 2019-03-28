@@ -1,4 +1,4 @@
-# HomeWeather 2.7.0 #
+# HomeWeather 2.7.1 #
 
 This software powers a home weather station based on the Electric Imp Platform.
 
@@ -38,9 +38,17 @@ The Weather Station has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes ##
 
+- 2.7.1 &mdash; *28 March 2019*
+    - Update dependencies:
+        - [DarkSky library](https://developer.electricimp.com/libraries/webservices/darksky)
+        - [Location 1.5.3](https://github.com/smittytone/Location)
+        - [Utilities 3.1.0](https://github.com/smittytone/generic)
 - 2.7.0 &mdash; *12 March 2019*
     - Update web UI code
-    - Update dependencies
+    - Update dependencies:
+        - [HT16K33Segment 2.0.0](https://github.com/smittytone/HT16K33Segment)
+        - [HT16K33Bargraph 2.0.0](https://github.com/smittytone/HT16K33Bargraph)
+        - [HT16K33Matrix 2.0.0](https://github.com/smittytone/HT16K33Matrix)
 - 2.6.1 &mdash; *1 November 2018*
     - Update to [Bootstrap 4.1.3](https://getbootstrap.com/)
     - Update other dependencies
