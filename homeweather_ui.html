@@ -145,7 +145,7 @@
             </div>
         </div>
     </div>
-    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js'></script>
     <script>
     $('.advanced').hide();
 
@@ -163,7 +163,7 @@
     $('#dimmer-advance').click(doAdvance);
     $('#reset-button').click(doReset);
     $('#debug').click(setDebug);
-    
+
     $('.showhide').click(function(){
         $('.advanced').toggle();
         var isVis = $('.advanced').is(':visible');
@@ -238,39 +238,39 @@
 
     function setTime(start, end) {
         // Set the night mode times
-        doPost('/dimmer', 
-               { 'dimstart' : start, 'dimend' : end }, 
+        doPost('/dimmer',
+               { 'dimstart' : start, 'dimend' : end },
                function(response) { setModal('confirmModal'); });
     }
 
     function setState(aState) {
         // Enable/disable night mode
-        doPost('/dimmer', 
-               { 'enabled' : aState }, 
-               function(response) { 
+        doPost('/dimmer',
+               { 'enabled' : aState },
+               function(response) {
                    $('.mtext span').text(aState ? 'Night mode enabled' : 'Night mode disabled');
-                    setModal('enableModal'); 
+                    setModal('enableModal');
                 });
     }
 
     function doAdvance() {
         // Tell the device to advance its clock
-        doPost('/dimmer', 
-               { 'advance' : true }, 
+        doPost('/dimmer',
+               { 'advance' : true },
                function(response) { setModal('advanceModal'); });
     }
 
     function setDebug() {
         // Tell the device to enter or leave debug mode
-        doPost('/debug', 
-               {'debug' : document.getElementById('debug').checked}, 
+        doPost('/debug',
+               {'debug' : document.getElementById('debug').checked},
                null);
     }
 
     function doReset() {
         // Tell the device to reset itself
-        doPost('/reset', 
-               {'reset' : true}, 
+        doPost('/reset',
+               {'reset' : true},
                null);
     }
 
@@ -287,7 +287,7 @@
 
     function setModal(theModal) {
         clearTimeout(timer);
-        
+
         var modal = document.getElementById(theModal);
         modal.style.display = 'block';
 
