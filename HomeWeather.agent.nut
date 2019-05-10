@@ -146,7 +146,7 @@ function deviceIsReady(dummy) {
                 location = null;
 
                 // Check again in LOCATION_RETRY seconds
-                imp.wakeup(LOCATION_RETRY, function() { 
+                imp.wakeup(LOCATION_RETRY, function() {
                     deviceIsReady(true);
                 });
             }
@@ -186,7 +186,7 @@ function debugAPI(context, next) {
         server.log("API received a request at " + time() + ": " + context.req.method.toupper() + " @ " + context.req.path.tolower());
         if (context.req.rawbody.len() > 0) server.log("Request body: " + context.req.rawbody.tolower());
     }
-    
+
     // Invoke the next middleware
     next();
 }
