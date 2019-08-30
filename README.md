@@ -1,4 +1,4 @@
-# HomeWeather 2.7.2 #
+# HomeWeather 2.7.3 #
 
 This software powers a home weather station based on the Electric Imp Platform.
 
@@ -38,6 +38,9 @@ The Weather Station has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes ##
 
+- 2.7.3 &mdash; *Unreleased*
+    - Update JQuery to 3.4.1
+    - Update Bootstrap to 4.3.1
 - 2.7.2 &mdash; *18 April 2019*
     - Update JQuery to 3.4.0
 - 2.7.1 &mdash; *28 March 2019*
