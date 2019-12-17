@@ -2,7 +2,7 @@
 // Copyright Tony Smith, 2015-2019
 
 // ********** IMPORTS **********
-#require "Rocky.class.nut:2.0.2"
+#require "Rocky.agent.lib.nut:3.0.0"
 #require "DarkSky.agent.lib.nut:2.0.0"
 
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
@@ -227,7 +227,7 @@ if (settings.len() == 0) {
 }
 
 // Set up the UI API
-api = Rocky();
+api = Rocky.init();
 api.use(debugAPI);
 
 // Set up UI access security: HTTPS only
