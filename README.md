@@ -40,6 +40,7 @@ The Weather Station has its own, web-based control UI, accessed at the agent URL
 
 - 2.7.4 *Unreleased*
     - Fix incorrectly addressed UI button.
+    - Update Rocky to 3.0.0.
 - 2.7.3 *5 September 2019*
     - Update JQuery to 3.4.1
     - Update Bootstrap to 4.3.1
