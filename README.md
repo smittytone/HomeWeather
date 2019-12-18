@@ -38,7 +38,7 @@ The Weather Station has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes ##
 
-- 2.7.4 *Unreleased*
+- 2.7.4 *18 December 2019*
     - Fix incorrectly addressed UI button.
     - Update Rocky to 3.0.0.
 - 2.7.3 *5 September 2019*
