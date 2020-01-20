@@ -197,7 +197,7 @@ function debugAPI(context, next) {
 #import "~/Dropbox/Programming/Imp/codes/slack.nut"
 
 // If you are NOT using Squinter or a similar tool, comment out the following line...
-#import "~/Dropbox/Programming/Imp/Codes/homeweather.nut"
+#import "~/OneDrive/Programming/HomeWeather/homeweather.nut"
 // ...and uncomment and fill in these line:
 // const APP_CODE = "YOUR_APP_UUID";
 // forecaster = DarkSky("YOUR_API_KEY");
