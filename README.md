@@ -1,4 +1,4 @@
-# HomeWeather 2.7.5 #
+# HomeWeather 2.7.6 #
 
 This software powers a home weather station based on the Electric Imp Platform.
 
@@ -38,6 +38,8 @@ The Weather Station has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes ##
 
+- 2.7.6 *2 December 2020*
+    - Minor fixes and tweaks.
 - 2.7.5 *21 May 2020*
     - Update JQuery to 3.5.x.
     - Update Bootstrap to 4.5.x.
@@ -89,4 +91,4 @@ The Weather Station has its own, web-based control UI, accessed at the agent URL
 
 ## Licence ##
 
-The Weather Station design and software is copyright &copy; 2014-20 Tony Smith and made available under the [MIT Licence](./LICENSE).
+The Weather Station design and software is copyright &copy; 2020 Tony Smith and made available under the [MIT Licence](./LICENSE).

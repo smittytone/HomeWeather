@@ -1,5 +1,5 @@
 // Home Weather - wall-mount weather Station
-// Copyright Tony Smith, 2015-2019
+// Copyright 2020, Tony Smith
 
 // ********** IMPORTS **********
 #require "Rocky.agent.lib.nut:3.0.0"
@@ -7,8 +7,8 @@
 
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
-#import "../generic/simpleslack.nut"            // Source: https://github.com/smittytone/generic
-#import "../generic/crashReporter.nut"          // Source: https://github.com/smittytone/generic
+#import "../generic-squirrel/simpleslack.nut"            // Source: https://github.com/smittytone/generic
+#import "../generic-squirrel/crashReporter.nut"          // Source: https://github.com/smittytone/generic
 #import "../Location/location.class.nut"        // Source: https://github.com/smittytone/Location
 const HTML_STRING = @"
 #import "homeweather_ui.html"
@@ -194,7 +194,7 @@ function debugAPI(context, next) {
 // ********** RUNTIME START **********
 
 // Load up the crash reporter
-#import "~/Dropbox/Programming/Imp/codes/slack.nut"
+#import "~/OneDrive/Programming/Generic/slack.nut"
 
 // If you are NOT using Squinter or a similar tool, comment out the following line...
 #import "~/OneDrive/Programming/HomeWeather/homeweather.nut"

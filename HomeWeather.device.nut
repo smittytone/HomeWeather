@@ -1,16 +1,16 @@
 // Home Weather - wall-mount weather Station
-// Copyright Tony Smith, 2015-2019
+// Copyright 2020, Tony Smith
 
 // ********** IMPORTS **********
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
-#import "../generic/crashReporter.nut"                      // Source: https://github.com/smittytone/generic
-#import "../generic/utilities.nut"                          // Source: https://github.com/smittytone/generic
-#import "../generic/disconnect.nut"                         // Source: https://github.com/smittytone/generic
+#import "../generic-squirrel/crashReporter.nut"                      // Source: https://github.com/smittytone/generic
+#import "../generic-squirrel/utilities.nut"                          // Source: https://github.com/smittytone/generic
+#import "../generic-squirrel/disconnect.nut"                         // Source: https://github.com/smittytone/generic
 #import "../Location/location.class.nut"                    // Source: https://github.com/smittytone/Location
-#import "../ht16k33segment/ht16k33segment.class.nut"        // Source: https://github.com/smittytone/HT16K33Segment
-#import "../ht16k33matrix/ht16k33matrix.class.nut"          // Source: https://github.com/smittytone/HT16K33Matrix
-#import "../ht16k33bargraph/ht16k33bargraph.class.nut"      // Source: https://github.com/smittytone/HT16K33Bargraph
+#import "../ht16k33segment-squirrel/ht16k33segment.class.nut"        // Source: https://github.com/smittytone/HT16K33Segment
+#import "../ht16k33matrix-squirrel/ht16k33matrix.class.nut"          // Source: https://github.com/smittytone/HT16K33Matrix
+#import "../ht16k33bargraph-squirrel/ht16k33bargraph.class.nut"      // Source: https://github.com/smittytone/HT16K33Bargraph
 
 
 // ********** CONSTANTS **********
@@ -276,24 +276,6 @@ function displayIcon(data) {
     matrix.displayCharacter(icon);
 }
 
-function setIcons() {
-    // Set up the character matrices within 'iconset'
-    iconset = {};
-    iconset.clearday <-     [0x89,0x42,0x18,0xBC,0x3D,0x18,0x42,0x91];
-    iconset.clearnight <-   [0x0,0x0,0x0,0x81,0xE7,0x7E,0x3C,0x18];
-    iconset.rain <-         [0x8C,0x5E,0x1E,0x5F,0x3F,0x9F,0x5E,0x0C];
-    iconset.lightrain <-    [0x8C,0x52,0x12,0x51,0x31,0x91,0x52,0xC];
-    iconset.snow <-         [0x14,0x49,0x2A,0x1C,0x1C,0x2A,0x49,0x14];
-    iconset.sleet <-        [0x4C,0xBE,0x5E,0xBF,0x5F,0xBF,0x5E,0xAC];
-    iconset.wind <-         [0x28,0x28,0x28,0x28,0x28,0xAA,0xAA,0x44];
-    iconset.fog <-          [0x55,0xAA,0x55,0xAA,0x55,0xAA,0x55,0xAA];
-    iconset.cloudy <-       [0x0C,0x1E,0x1E,0x1F,0x1F,0x1F,0x1E,0x0C];
-    iconset.partlycloudy <- [0x0C,0x12,0x12,0x11,0x11,0x11,0x12,0x0C];
-    iconset.thunderstorm <- [0x0,0x0,0x0,0xF0,0x1C,0x7,0x0,0x0];
-    iconset.tornado <-      [0x0,0x2,0x36,0x7D,0xDD,0x8D,0x6,0x2];
-    iconset.none <-         [0x0,0x0,0x2,0xB9,0x9,0x6,0x0,0x0];
-}
-
 function displayDisconnected() {
     // Put 'dISC' or 'COnn' onto the segment display to indicate status
     if (!isConnecting) {
@@ -343,7 +325,7 @@ crashReporter.init();
 // Load in generic boot message code
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
-#import "../generic/bootmessage.nut"        // Source code: https://github.com/smittytone/generic
+#import "../generic-squirrel/bootmessage.nut"        // Source code: https://github.com/smittytone/generic
 
 // Set up the disconnection manager
 disconnectionManager.eventCallback = discHandler;
@@ -357,23 +339,23 @@ locator = Location();
 // Set up the matrix display
 hardware.i2c89.configure(CLOCK_SPEED_400_KHZ);
 matrix = HT16K33Matrix(hardware.i2c89, 0x70);
-matrix.init(1, 3);
+matrix.init(1, 1);
 
 // ADDED IN 2.7.0
 // Set up weather icons using user-definable characters
 matrix.defineCharacter(0, "\x89\x42\x18\xBC\x3D\x18\x42\x91");
-matrix.defineCharacter(1, "\x8C\x5E\x1E\x5F\x3F\x9F\x5E\x0C");
-matrix.defineCharacter(2, "\x8C\x52\x12\x51\x31\x91\x52\x0C");
-matrix.defineCharacter(3, "\x14\x49\x2A\x1C\x1C\x2A\x49\x14");
-matrix.defineCharacter(4, "\x4C\xBE\x5E\xBF\x5F\xBF\x5E\xAC");
-matrix.defineCharacter(5, "\x14\x14\x14\x14\x14\x55\x55\x22");
+matrix.defineCharacter(1, "\x31\x7A\x78\xFA\xFC\xF9\x7A\x30");
+matrix.defineCharacter(2, "\x31\x4A\x48\x8A\x8C\x89\x4A\x30");
+matrix.defineCharacter(3, "\x28\x92\x54\x38\x38\x54\x92\x28");
+matrix.defineCharacter(4, "\x32\x7D\x7A\xFD\xFA\xFD\x7A\x35");
+matrix.defineCharacter(5, "\x28\x28\x28\x28\x28\xAA\xAA\x44");
 matrix.defineCharacter(6, "\x55\xAA\x55\xAA\x55\xAA\x55\xAA");
-matrix.defineCharacter(7, "\x0C\x1E\x1E\x1F\x1F\x1F\x1E\x0C");
-matrix.defineCharacter(8, "\x0C\x12\x12\x11\x11\x11\x12\x0C");
-matrix.defineCharacter(9, "\x00\x00\x00\xF0\x1C\x07\x00\x00");
-matrix.defineCharacter(10, "\x00\x02\x36\x7D\xDD\x8D\x06\x02");
+matrix.defineCharacter(7, "\x30\x78\x78\xF8\xF8\xF8\x78\x30");
+matrix.defineCharacter(8, "\x30\x48\x48\x88\x88\x88\x48\x30");
+matrix.defineCharacter(9, "\x00\x00\x00\x0F\x38\xE0\x00\x00");
+matrix.defineCharacter(10, "\x00\x40\x6C\xBE\xBB\xB1\x60\x40");
 matrix.defineCharacter(11, "\x3C\x42\x81\xC3\xFF\xFF\x7E\x3C");
-matrix.defineCharacter(12, "\x00\x00\x02\xB9\x09\x06\x00\x00");
+matrix.defineCharacter(12, "\x00\x00\x40\x9D\x90\x60\x00\x00");
 
 // Set up a table to map incoming weather condition names
 // (eg. "clearday") to user-definable character Ascii values
