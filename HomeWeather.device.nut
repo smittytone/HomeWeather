@@ -1,5 +1,5 @@
 // Home Weather - wall-mount weather Station
-// Copyright 2020, Tony Smith
+// Copyright 2021, Tony Smith
 
 // ********** IMPORTS **********
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)

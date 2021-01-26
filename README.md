@@ -1,4 +1,4 @@
-# HomeWeather 2.7.6 #
+# HomeWeather 2.7.7 #
 
 This software powers a home weather station based on the Electric Imp Platform.
 
@@ -38,6 +38,9 @@ The Weather Station has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes ##
 
+- 2.7.7 *26 January 2021*
+    - Implement GitHub-sourced dependencies as submodules.
+    - Update Rocky to 3.0.1.
 - 2.7.6 *2 December 2020*
     - Minor fixes and tweaks.
 - 2.7.5 *21 May 2020*
@@ -75,20 +78,7 @@ The Weather Station has its own, web-based control UI, accessed at the agent URL
     - Update to [JQuery 3.3.1](https://jquery.com)
     - Prevent Ajax XHR caching
     - Stop DarkSky requests busting the limit
-- 2.5.0
-    - Assorted tweaks and generally bringing everything up to date
-- 2.4.0
-    - Add light rain icon
-    - Improve UI
-    - Remove UI version number
-    - Use generic boot message code
-- 2.3.0
-    - Remove Build API integration
-    - Reworked web UI
-    - Add device boot message
-- 2.2.0
-    - Initial re-release
 
 ## Licence ##
 
-The Weather Station design and software is copyright &copy; 2020 Tony Smith and made available under the [MIT Licence](./LICENSE).
+The Weather Station design and software is copyright &copy; 2021 Tony Smith and made available under the [MIT Licence](./LICENSE).

@@ -1,18 +1,18 @@
 // Home Weather - wall-mount weather Station
-// Copyright 2020, Tony Smith
+// Copyright 2021, Tony Smith
 
 // ********** IMPORTS **********
-#require "Rocky.agent.lib.nut:3.0.0"
+#require "Rocky.agent.lib.nut:3.0.1"
 #require "DarkSky.agent.lib.nut:2.0.0"
 
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
 #import "./generic-squirrel/simpleslack.nut"            // Source: https://github.com/smittytone/generic
 #import "./generic-squirrel/crashReporter.nut"          // Source: https://github.com/smittytone/generic
-#import "./Location/location.class.nut"        // Source: https://github.com/smittytone/Location
+#import "./Location/location.class.nut"                 // Source: https://github.com/smittytone/Location
 const HTML_STRING = @"
 #import "homeweather_ui.html"
-";                                              // Source: https://github.com/smittytone/HomeWeather
+";                                                      // Source: https://github.com/smittytone/HomeWeather
 
 
 // ********** CONSTANTS **********
