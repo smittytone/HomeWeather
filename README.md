@@ -8,6 +8,17 @@ The station comprises an imp001 and April breakout board, plus an [Adafruit 0.56
 
 ![Weather Station](images/ws.jpg)
 
+## Cloning this Repository ##
+
+This repo pulls in some dependencies through git submodules. Use this command to clone the repo and get the libraries on which it depends:
+
+```
+git clone --recurse-submodules https://github.com/smittytone/HomeWeather.git
+```
+
+
+
+
 ## Dark Sky ##
 
 The station uses [Dark Sky](https://darksky.net/)’s Dark Sky API for regular weather forecasts. This requires a developer account, which is free &mdash; register [here](https://darksky.net/dev/register). The Dark Sky API is a commercial service. Though the first 1000 API calls made each day under your API key are free of charge, subsequent calls are billed at a rate of $0.0001 per call. You and your application will not be notified by the [Electric Imp Dark Sky library](https://developer.electricimp.com/libraries/webservices/darksky) if this occurs, so you may wish to add suitable call-counting code to your application.
