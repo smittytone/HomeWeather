@@ -4,13 +4,13 @@
 // ********** IMPORTS **********
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
-#import "../generic-squirrel/crashReporter.nut"                      // Source: https://github.com/smittytone/generic
-#import "../generic-squirrel/utilities.nut"                          // Source: https://github.com/smittytone/generic
-#import "../generic-squirrel/disconnect.nut"                         // Source: https://github.com/smittytone/generic
-#import "../Location/location.class.nut"                    // Source: https://github.com/smittytone/Location
-#import "../ht16k33segment-squirrel/ht16k33segment.class.nut"        // Source: https://github.com/smittytone/HT16K33Segment
-#import "../ht16k33matrix-squirrel/ht16k33matrix.class.nut"          // Source: https://github.com/smittytone/HT16K33Matrix
-#import "../ht16k33bargraph-squirrel/ht16k33bargraph.class.nut"      // Source: https://github.com/smittytone/HT16K33Bargraph
+#import "./generic-squirrel/crashReporter.nut"                      // Source: https://github.com/smittytone/generic
+#import "./generic-squirrel/utilities.nut"                          // Source: https://github.com/smittytone/generic
+#import "./generic-squirrel/disconnect.nut"                         // Source: https://github.com/smittytone/generic
+#import "./Location/location.class.nut"                    // Source: https://github.com/smittytone/Location
+#import "./ht16k33segment-squirrel/ht16k33segment.class.nut"        // Source: https://github.com/smittytone/HT16K33Segment
+#import "./ht16k33matrix-squirrel/ht16k33matrix.class.nut"          // Source: https://github.com/smittytone/HT16K33Matrix
+#import "./ht16k33bargraph-squirrel/ht16k33bargraph.class.nut"      // Source: https://github.com/smittytone/HT16K33Bargraph
 
 
 // ********** CONSTANTS **********
@@ -325,7 +325,7 @@ crashReporter.init();
 // Load in generic boot message code
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
-#import "../generic-squirrel/bootmessage.nut"        // Source code: https://github.com/smittytone/generic
+#import "./generic-squirrel/bootmessage.nut"        // Source code: https://github.com/smittytone/generic
 
 // Set up the disconnection manager
 disconnectionManager.eventCallback = discHandler;

@@ -1,0 +1,15 @@
+[submodule "generic-squirrel"]
+	path = generic-squirrel
+	url = https://github.com/smittytone/generic-squirrel.git
+[submodule "HT16K33Bargraph-Squirrel"]
+	path = HT16K33Bargraph-Squirrel
+	url = https://github.com/smittytone/HT16K33Bargraph-Squirrel.git
+[submodule "HT16K33Matrix-Squirrel"]
+	path = HT16K33Matrix-Squirrel
+	url = https://github.com/smittytone/HT16K33Matrix-Squirrel.git
+[submodule "HT16K33Segment-Squirrel"]
+	path = HT16K33Segment-Squirrel
+	url = https://github.com/smittytone/HT16K33Segment-Squirrel.git
+[submodule "Location"]
+	path = Location
+	url = https://github.com/smittytone/Location.git
