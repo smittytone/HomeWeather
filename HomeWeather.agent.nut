@@ -3,10 +3,11 @@
 
 // ********** IMPORTS **********
 #require "Rocky.agent.lib.nut:3.0.1"
-#require "DarkSky.agent.lib.nut:2.0.0"
+//#require "DarkSky.agent.lib.nut:2.0.0"
 
 // If you are NOT using Squinter or a similar tool, replace the following #import statement(s)
 // with the contents of the named file(s):
+#import "openweather.lib.agent.nut"
 #import "./generic-squirrel/simpleslack.nut"            // Source: https://github.com/smittytone/generic
 #import "./generic-squirrel/crashReporter.nut"          // Source: https://github.com/smittytone/generic
 #import "./Location/location.class.nut"                 // Source: https://github.com/smittytone/Location
@@ -32,15 +33,16 @@ local locator = null;
 local location = null;
 local settings = null;
 local syncFlag = false;
-local darkSkyCount = 0;
+local openWeatherCount = 0;
+local lastCheck = date();
 
 
 // ********** WEATHER FUNCTIONS **********
 function getForecast() {
     // Request the weather data from Forecast.io asynchronously
-    if (location != null && darkSkyCount < 990) {
+    if (location != null && openWeatherCount < 990) {
         appLog("Requesting a forecast");
-        forecaster.forecastRequest(location.longitude, location.latitude, forecastCallback);
+        forecaster.forecastRequest(location.latitude, location.longitude, forecastCallback);
     }
 
     // Check on the device
@@ -51,54 +53,79 @@ function forecastCallback(err, data) {
     // Decode the JSON-format data from forecast.io (error thrown if invalid)
     if (err) appError(err);
     if (data) {
-        appLog("Weather forecast data received from DarkSky");
+        appLog("Weather forecast data received from OpenWeather");
         if ("hourly" in data) {
-            if ("data" in data.hourly) {
-                // Get second item in array: this is the weather one hour from now
-                local item = data.hourly.data[1];
-                local sendData = {};
-                sendData.cast <- item.icon;
-
-                // Adjust troublesome icon names
-                if (item.icon == "wind") sendData.cast = "windy";
-                if (item.icon == "fog") sendData.cast = "foggy";
-
-                if (item.icon == "clear-day") {
-                    item.icon = "clearday";
-                    sendData.cast = "clear";
-                }
-
-                if (item.icon == "clear-night") {
-                    item.icon = "clearnight";
-                    sendData.cast = "clear";
-                }
-
-                if (item.icon == "partly-cloudy-day" || item.icon == "partly-cloudy-night") {
-                    item.icon = "partlycloudy";
-                    sendData.cast = "partly cloudy";
-                }
-
-                if (item.summary == "Drizzle" || item.summary == "Light Rain") {
-                    item.icon = "lightrain";
-                    sendData.cast = "drizzle";
-                }
-
-                local initial = sendData.cast.slice(0, 1);
-                sendData.cast = initial.toupper() + sendData.cast.slice(1);
-
-                // Send the icon name to the device
-                sendData.icon <- item.icon;
-                sendData.temp <- item.apparentTemperature;
-                sendData.rain <- item.precipProbability;
-                device.send("homeweather.show.forecast", sendData);
-                savedData = sendData;
-                appLog("Forecast: " + sendData.cast + ". Temperature: " + sendData.temp + "°C. Chance of rain: " + (sendData.rain * 100) + "%");
+            // Get second item in array: this is the weather one hour from now
+            local item = data.hourly[1];
+            local sendData = {};
+            local id = 0;
+            if ("weather" in item && item.weather.len() > 0) {
+                sendData.cast <- item.weather[0].main;
+                id = item.weather[0].id;
+            } else {
+                sendData.cast <- "None";
             }
+
+            // Adjust troublesome icon names
+            if (id == 771) sendData.cast = "Windy";
+            if (id == 871) sendData.cast = "Tornado";
+            if (id > 699 && id < 770) sendData.cast = "Foggy";
+            sendData.icon <- sendData.cast.tolower();
+
+            if (sendData.cast == "Clouds") {
+                if (id < 804) {
+                    sendData.icon = "partlycloudy";
+                    sendData.cast = "Partly cloudy";
+                } else {
+                    sendData.icon = "cloudy";
+                    sendData.cast = "Cloudy";
+                }
+            }
+
+            if (id > 602 && id < 620) {
+                sendData.icon = "sleet";
+                sendData.cast = "Sleet";
+            }
+
+            if (sendData.cast == "Drizzle") {
+                sendData.icon = "lightrain";
+            }
+
+            if (sendData.cast == "Clear") {
+                // Set clear icon by time of day
+                local parts = split(item.weather[0].icon, ".");
+                local diurnal = parts[0].slice(parts[0].len() - 1);
+                if (diurnal == "d") {
+                    sendData.icon += "day";
+                    sendData.cast += " day";
+                } else {
+                    sendData.icon += "night";
+                    sendData.cast = " night";
+                }
+            }
+
+            // Send the icon name to the device
+            sendData.temp <- item.feels_like;
+
+            local rain = 0.0;
+            if ("rain" in item) {
+                rain = item.rain.tofloat() / 11.0;
+                if (rain > 100.0) rain = 100.0;
+            }
+            sendData.rain <- rain;
+            if (settings.debug) server.log("Sending data to device");
+            device.send("homeweather.show.forecast", sendData);
+            savedData = sendData;
+            appLog("Forecast: " + sendData.cast + ". Temperature: " + sendData.temp + "°C. Chance of rain: " + (sendData.rain * 100) + "%");
         }
 
-        // Use Dark Sky 2.0.0's callCount property/method
-        appLog("Current Forecast API call tally: " + forecaster.callCount + "/1000 ");
-        darkSkyCount = forecaster.getCallCount();
+        // Update the tally, or zero on a new day
+        openWeatherCount++;
+        local now = date();
+        if (now.day != lastCheck.day) openWeatherCount = 0;
+        lastCheck = now;
+
+        appLog("Current API call tally: " + openWeatherCount + "/1000 ");
     }
 
     // Get the next forecast in an 'FORECAST_REFRESH' minutes' time
@@ -135,7 +162,7 @@ function deviceIsReady(dummy) {
 
             if (!("error" in location)) {
                 // Start the forecasting loop
-                appLog("Co-ordinates: " + location.longitude + ", " + location.latitude);
+                appLog("Co-ordinates: " + location.latitude + ", " + location.longitude);
                 if (nextForecastTimer != null) imp.cancelwakeup(nextForecastTimer);
                 nextForecastTimer = imp.wakeup(0, getForecast);
             } else {
@@ -204,8 +231,9 @@ function debugAPI(context, next) {
 // locator = Location("YOUR_API_KEY");
 
 // Set 'forecaster' for UK use
-forecaster.setUnits("uk");
+forecaster.setUnits("metric");
 forecaster.setLanguage("en");
+forecaster.exclude(["current", "minutely", "daily", "alerts"]);
 
 // Register the function to call when the device asks for a forecast
 // Once this request has been successfully processed, the agent will
