@@ -108,9 +108,10 @@ function forecastCallback(err, data) {
             sendData.temp <- item.feels_like;
 
             local rain = 0.0;
-            if ("rain" in item) {
-                rain = item.rain.tofloat() / 11.0;
-                if (rain > 100.0) rain = 100.0;
+            if ("rain" in item && "1h" in item.rain) {
+                rain = item.rain["1h"];
+                if (rain > 1.0) rain = 1.0;
+                if (rain < 0.0) rain = 0.0;
             }
             sendData.rain <- rain;
             if (settings.debug) server.log("Sending data to device");

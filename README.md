@@ -1,4 +1,4 @@
-# HomeWeather 2.7.7 #
+# HomeWeather 2.7.8 #
 
 This software powers a home weather station based on the Electric Imp Platform.
 
@@ -16,16 +16,9 @@ This repo pulls in some dependencies through git submodules. Use this command to
 git clone --recurse-submodules https://github.com/smittytone/HomeWeather.git
 ```
 
+## Weather Data ##
 
-
-
-## Dark Sky ##
-
-The station uses [Dark Sky](https://darksky.net/)’s Dark Sky API for regular weather forecasts. This requires a developer account, which is free &mdash; register [here](https://darksky.net/dev/register). The Dark Sky API is a commercial service. Though the first 1000 API calls made each day under your API key are free of charge, subsequent calls are billed at a rate of $0.0001 per call. You and your application will not be notified by the [Electric Imp Dark Sky library](https://developer.electricimp.com/libraries/webservices/darksky) if this occurs, so you may wish to add suitable call-counting code to your application.
-
-### Dark Sky Units ###
-
-The code is set to deliver Dark Sky forecast in UK units. You may wish to change this according to your location. Look for line 161 in the agent code.
+HomeWeather originally used [Dark Sky](https://darksky.net/) as its source of weather data. Version 2.7.8 uses [OpenWeather](https://openweathermap.org/), for which a local integration is included. DarkSky is expected to cease operation in 2022. OpenWeather, like DarkSky, requires you to set up a developer account for which you can obtain an API key. Please check the [OpenWeather website](https://openweathermap.org/) for API free-usage limits and pricing if you exceed those limits.
 
 ## Location ##
 
@@ -49,6 +42,8 @@ The Weather Station has its own, web-based control UI, accessed at the agent URL
 
 ## Release Notes ##
 
+- 2.7.8 *Unreleased*
+    - Switch weather data provider from DarkSky to [OpenWeather](https://openweathermap.org/).
 - 2.7.7 *26 January 2021*
     - Implement GitHub-sourced dependencies as submodules.
     - Update Rocky to 3.0.1.
